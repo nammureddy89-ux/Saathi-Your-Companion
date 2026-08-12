@@ -1,0 +1,3146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Saathi Prototype</title>
+<style>
+  :root{
+    --coral:#FF6B4A; --coral-deep:#E8623D; --coral-light:#FFE8E1;
+    --grad-coral: linear-gradient(135deg,#FF7A59,#FFB199);
+    --grad-sun: linear-gradient(135deg,#FDBB74,#FF7A59);
+    --grad-teal: linear-gradient(135deg,#1F7A6C,#5FCDB5);
+    --teal:#1F7A6C; --teal-light:#E1F5F0;
+    --ink:#20232B; --muted:#7A8089; --border:#EDEAE6; --surface:#FBF8F5; --card:#FFFFFF;
+    --danger:#D64545; --danger-light:#FCEBEA; --warn:#C2790F; --warn-light:#FDF2E1;
+    --shadow: 0 4px 18px rgba(32,35,43,0.07);
+    --shadow-lg: 0 8px 28px rgba(32,35,43,0.12);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#EFE9E2;color:var(--ink);-webkit-font-smoothing:antialiased;}
+  .app-wrap{max-width:420px;margin:0 auto;min-height:100vh;background:var(--surface);position:relative;}
+  .nav{position:sticky;top:0;z-index:10;background:#fff;padding:8px 12px;font-size:12px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);}
+  .brand{font-weight:800;color:var(--coral-deep);font-size:13px;flex:0 0 auto;padding-right:6px;border-right:1px solid var(--border);}
+  .navscroll{display:flex;gap:6px;overflow-x:auto;white-space:nowrap;}
+  .nav button{background:var(--surface);color:var(--muted);border:none;border-radius:20px;padding:6px 11px;font-size:10.5px;cursor:pointer;flex:0 0 auto;font-weight:600;}
+  .nav button.active{background:var(--grad-coral);color:#fff;}
+  .screen{display:none;padding:18px;padding-bottom:40px;}
+  .screen.active{display:block;}
+  h1.voice{font-size:22px;margin:0 0 5px;font-weight:700;letter-spacing:-0.3px;}
+  .backrow{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:12.5px;margin-bottom:10px;cursor:pointer;font-weight:600;}
+  button{font-family:inherit;cursor:pointer;}
+  .field-label{font-size:11.5px;color:var(--muted);display:block;margin-bottom:5px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;}
+  input,textarea,select{width:100%;border:1.5px solid var(--border);border-radius:11px;padding:9px 12px;font-size:14px;font-family:inherit;background:#fff;}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--coral);}
+  textarea{resize:none;}
+  .pill{border-radius:20px;padding:7px 13px;font-size:12.5px;border:1.5px solid var(--border);background:#fff;color:var(--ink);font-weight:600;}
+  .pill.active{border:1.5px solid var(--coral);background:var(--coral-light);color:var(--coral-deep);}
+  .btn-primary{width:100%;background:var(--grad-coral);color:#fff;border:none;border-radius:13px;height:46px;font-size:15px;font-weight:700;box-shadow:0 6px 16px rgba(255,107,74,0.28);}
+  .btn-primary:disabled{background:#D1D5DB;box-shadow:none;cursor:not-allowed;}
+  .btn-secondary{width:100%;background:#fff;border:1.5px solid var(--border);border-radius:13px;height:40px;font-size:13.5px;font-weight:600;color:var(--ink);}
+  .btn-ghost{width:100%;background:transparent;border:none;color:var(--muted);font-size:13px;height:30px;font-weight:600;}
+  .btn-mini{background:var(--coral-light);color:var(--coral-deep);border:none;border-radius:10px;padding:5px 10px;font-size:11px;font-weight:700;white-space:nowrap;}
+  .card{border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:12px;background:#fff;box-shadow:var(--shadow);}
+  .card-badge{height:88px;display:flex;align-items:center;justify-content:center;position:relative;}
+  .card-badge .icon-circle{width:50px;height:50px;border-radius:50%;background:rgba(255,255,255,0.92);display:flex;align-items:center;justify-content:center;font-size:23px;box-shadow:0 4px 10px rgba(0,0,0,0.1);}
+  .card-body{padding:13px;}
+  .row-between{display:flex;justify-content:space-between;align-items:baseline;}
+  .muted{color:var(--muted);}
+  .small{font-size:12.5px;}
+  .xsmall{font-size:11px;}
+  .tag{font-size:10.5px;background:var(--surface);border-radius:10px;padding:3px 9px;color:var(--muted);font-weight:600;}
+  .insight-box{background:linear-gradient(135deg,#FFF4EF,#FFEDE6);border-radius:9px;padding:8px 10px;margin:8px 0;font-size:11.5px;color:#5C4A42;border:1px solid #FFE0D3;}
+  .chip{background:var(--coral-light);color:var(--coral-deep);border-radius:16px;padding:6px 10px 6px 12px;font-size:12.5px;display:inline-flex;align-items:center;gap:6px;margin:0 6px 6px 0;font-weight:600;}
+  table{width:100%;border-collapse:collapse;font-size:12px;}
+  td{padding:7px 7px;border-top:1px solid var(--border);}
+  .status-pill{font-size:12px;border-radius:13px;padding:4px 12px;display:inline-block;font-weight:700;}
+  .status-good{background:var(--teal-light);color:var(--teal);}
+  .status-bad{background:var(--danger-light);color:var(--danger);}
+  .warn-box{background:var(--warn-light);border-radius:13px;padding:12px;margin-bottom:14px;display:flex;gap:8px;border:1px solid #F5DFAF;}
+  .error-text{color:var(--danger);font-size:11.5px;margin:4px 0 0;font-weight:600;}
+  .progress{height:6px;border-radius:3px;background:var(--border);overflow:hidden;flex:1;}
+  .progress-fill{height:100%;background:var(--grad-coral);}
+  .stepper-row{display:flex;align-items:center;justify-content:space-between;background:#fff;border:1.5px solid var(--border);border-radius:11px;padding:8px 12px;}
+  .step-btn{width:24px;height:24px;padding:0;border-radius:7px;border:1.5px solid var(--border);background:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--coral-deep);}
+  .date-field{position:relative;}
+  .date-input{cursor:pointer;background:#fff;font-weight:600;}
+  .cal-pop{position:absolute;top:calc(100% + 6px);left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow-lg);padding:10px;z-index:50;}
+  .cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:12.5px;font-weight:700;}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center;}
+  .cal-dow{font-size:9.5px;color:var(--muted);padding:2px 0;font-weight:700;}
+  .cal-day{font-size:12px;padding:6px 0;border-radius:7px;cursor:pointer;font-weight:600;}
+  .cal-day:hover{background:var(--coral-light);}
+  .cal-day.selected{background:var(--grad-coral);color:#fff;}
+  .cal-day.today{border:1.5px solid var(--coral);}
+  .cal-day.disabled{color:#D1D5DB;cursor:not-allowed;}
+  .cal-day.empty{visibility:hidden;}
+  .inline-add{display:flex;gap:8px;margin-bottom:12px;}
+  .hscroll{display:flex;gap:10px;overflow-x:auto;padding:4px 4px 12px;margin:0 -4px;scroll-snap-type:x mandatory;}
+  .hscroll .hcard{flex:0 0 80%;scroll-snap-align:start;}
+  .item-row{padding:7px 0;border-bottom:0.5px solid var(--border);}
+  .attr-chip{font-size:10px;background:var(--surface);border-radius:8px;padding:2px 7px;color:var(--muted);margin:0 4px 4px 0;display:inline-block;}
+  .hotel-chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;background:var(--coral-light);color:var(--coral-deep);border-radius:20px;padding:6px 13px;}
+  .verify-badge{display:inline-flex;align-items:center;font-size:11px;margin-left:5px;vertical-align:middle;}
+  .day-chip{display:inline-block;font-size:11.5px;font-weight:700;background:var(--surface);color:var(--ink);border-radius:8px;padding:4px 10px;}
+  .date-chip{display:inline-block;font-size:11px;font-weight:700;background:var(--coral-light);color:var(--coral-deep);border-radius:8px;padding:4px 10px;margin-left:6px;}
+  .itin-scroll::-webkit-scrollbar{width:4px;}
+  .itin-scroll::-webkit-scrollbar-track{background:transparent;}
+  .itin-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+  .itin-scroll{scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
+  .itin-panel{background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);padding:14px;margin-bottom:12px;}
+  .itin-item{padding:10px 0;border-bottom:1px solid var(--border);}
+  .itin-item:last-child{border-bottom:none;}
+  .img-carousel{position:relative;height:140px;overflow:hidden;}
+  .img-carousel-track{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;height:100%;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+  .img-carousel-track::-webkit-scrollbar{display:none;}
+  .img-carousel-track img{width:100%;height:100%;object-fit:cover;flex:0 0 100%;scroll-snap-align:start;}
+  .img-carousel-dots{position:absolute;bottom:8px;left:0;right:0;display:flex;justify-content:center;gap:5px;}
+  .img-carousel-dots .dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.55);transition:background 0.2s;}
+  .img-carousel-dots .dot.active{background:#fff;}
+  .lightbox-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.82);display:flex;align-items:center;justify-content:center;flex-direction:column;z-index:9999;padding:24px;cursor:zoom-out;animation:lightboxFade 0.15s ease;}
+  @keyframes lightboxFade{from{opacity:0;}to{opacity:1;}}
+  @keyframes gentlePulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.6;transform:scale(1.08);}}
+  .lightbox-overlay img{max-width:min(90vw,480px);max-height:70vh;border-radius:14px;object-fit:cover;box-shadow:0 12px 40px rgba(0,0,0,0.5);}
+  .lightbox-overlay .lightbox-caption{color:#fff;font-weight:700;font-size:15px;margin-top:14px;}
+  .lightbox-overlay .lightbox-close{position:absolute;top:18px;right:20px;color:#fff;font-size:26px;line-height:1;cursor:pointer;opacity:0.85;}
+  .compare-thumb{cursor:zoom-in;transition:transform .12s ease;}
+  .compare-thumb:hover{transform:scale(1.08);}
+  .compare-toggle-btn.active{background:var(--teal-light);border-color:var(--teal);color:var(--teal);}
+</style>
+</head>
+<body>
+<div class="app-wrap">
+  <div class="nav">
+    <span class="brand">Saathi</span>
+    <div class="navscroll" id="navBar"></div>
+  </div>
+
+  <!-- SIGNUP: MOCK ONLY -->
+  <div class="screen" data-screen="signup">
+    <div style="background:var(--grad-sun);margin:-18px -18px 0;padding:30px 20px 24px;color:#fff;text-align:center;">
+      <div style="font-size:13px;letter-spacing:2px;font-weight:800;opacity:0.85;margin-bottom:10px;">SAATHI</div>
+      <h1 class="voice" style="color:#fff;">Get started</h1>
+      <p style="margin:0;font-size:13px;opacity:0.9;">Mock only — no real authentication yet.</p>
+    </div>
+    <div style="padding-top:22px;">
+      <label class="field-label">First name</label>
+      <input id="signupName" placeholder="e.g. Priya" style="margin-bottom:12px;">
+      <label class="field-label">Last name</label>
+      <input id="signupLastName" placeholder="e.g. Sharma" style="margin-bottom:12px;">
+
+      <label class="field-label">Gender <span class="muted" style="text-transform:none;">— helps us surface safety info that matters to you</span></label>
+      <div style="display:flex;gap:7px;margin-bottom:12px;">
+        <button class="pill active" id="gender-female" style="flex:1;" onclick="selectGender('female')">Female</button>
+        <button class="pill" id="gender-male" style="flex:1;" onclick="selectGender('male')">Male</button>
+        <button class="pill" id="gender-other" style="flex:1;" onclick="selectGender('other')">Prefer not to say</button>
+      </div>
+
+      <label class="field-label">Country</label>
+      <input value="India" disabled style="margin-bottom:6px;background:var(--surface);color:var(--muted);">
+      <p class="xsmall muted" style="margin:0 0 14px;">Saathi supports domestic (India) trips only, for now.</p>
+
+      <div style="display:flex;gap:8px;margin-bottom:14px;">
+        <button class="pill active" id="signup-phone" style="flex:1;" onclick="toggleSignupMode('phone')">Phone</button>
+        <button class="pill" id="signup-email" style="flex:1;" onclick="toggleSignupMode('email')">Email</button>
+      </div>
+      <input id="signupInput" placeholder="Enter mobile number" style="margin-bottom:14px;">
+      <button class="btn-primary" onclick="completeSignup()">Continue ↗</button>
+      <button class="btn-ghost" style="margin-top:8px;" onclick="showScreen('signin')">Already have an account? Sign in</button>
+      <button class="btn-ghost" onclick="showScreen('home-new')">Skip for now</button>
+    </div>
+  </div>
+
+  <!-- SIGN IN: MOCK ONLY -->
+  <div class="screen" data-screen="signin">
+    <div style="background:var(--grad-teal);margin:-18px -18px 0;padding:30px 20px 24px;color:#fff;text-align:center;">
+      <div style="font-size:13px;letter-spacing:2px;font-weight:800;opacity:0.85;margin-bottom:10px;">SAATHI</div>
+      <h1 class="voice" style="color:#fff;">Welcome back</h1>
+      <p style="margin:0;font-size:13px;opacity:0.9;">Mock only — no real authentication yet.</p>
+    </div>
+    <div style="padding-top:22px;">
+      <div style="display:flex;gap:8px;margin-bottom:14px;">
+        <button class="pill active" id="signin-phone" style="flex:1;" onclick="toggleSigninMode('phone')">Phone</button>
+        <button class="pill" id="signin-email" style="flex:1;" onclick="toggleSigninMode('email')">Email</button>
+      </div>
+      <input id="signinInput" placeholder="Enter mobile number" style="margin-bottom:14px;">
+      <button class="btn-primary" id="signinSendBtn" onclick="sendSigninOtp()">Send OTP</button>
+
+      <div id="signinOtpBlock" style="display:none;margin-top:14px;">
+        <label class="field-label">Enter OTP <span class="muted" style="text-transform:none;">— any digits work in this mock</span></label>
+        <input id="signinOtp" placeholder="4-digit code" style="margin-bottom:14px;">
+        <button class="btn-primary" onclick="verifySigninOtp()">Verify & sign in ↗</button>
+      </div>
+
+      <button class="btn-ghost" style="margin-top:8px;" onclick="showScreen('signup')">New here? Sign up</button>
+    </div>
+  </div>
+
+  <!-- HOME: FIRST TIME -->
+  <div class="screen active" data-screen="home-new">
+    <div style="background:var(--grad-sun);margin:-18px -18px 0;padding:32px 20px 26px;color:#fff;text-align:center;">
+      <div style="font-size:13px;letter-spacing:2px;font-weight:800;opacity:0.85;margin-bottom:10px;">SAATHI</div>
+      <div style="font-size:30px;">🧭</div>
+      <h1 class="voice" style="color:#fff;margin-top:6px;">Where to, next?</h1>
+      <p style="margin:0;font-size:13px;opacity:0.9;">Your honest travel companion.</p>
+    </div>
+
+    <div style="padding-top:20px;">
+      <div style="display:flex;justify-content:space-between;gap:10px;margin-bottom:22px;text-align:center;">
+        <div style="flex:1;">
+          <div style="font-size:20px;">✨</div>
+          <p class="xsmall" style="margin:4px 0 0;font-weight:600;">Matched to you</p>
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:20px;">💰</div>
+          <p class="xsmall" style="margin:4px 0 0;font-weight:600;">Budget tracked</p>
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:20px;">🤝</div>
+          <p class="xsmall" style="margin:4px 0 0;font-weight:600;">No overselling</p>
+        </div>
+      </div>
+
+      <p class="small muted" style="margin-bottom:6px;font-weight:600;">Popular right now</p>
+      <p class="xsmall muted" style="margin:0 0 10px;">Estimates shown are per person, based on 1 traveller · 5 nights — yours may vary.</p>
+      <div style="margin-bottom:20px;">
+        <div class="card" style="cursor:pointer;display:flex;align-items:center;gap:12px;padding:10px;" onclick="quickStartWith('Gokarna')">
+          <div class="icon-circle" style="width:46px;height:46px;font-size:20px;background:var(--grad-coral);flex:0 0 auto;">🏖</div>
+          <div><b class="small">Gokarna</b><p class="xsmall muted" style="margin:2px 0 0;">Beaches · ~₹22,000</p></div>
+        </div>
+        <div class="card" style="cursor:pointer;display:flex;align-items:center;gap:12px;padding:10px;" onclick="quickStartWith('Coorg')">
+          <div class="icon-circle" style="width:46px;height:46px;font-size:20px;background:var(--grad-teal);flex:0 0 auto;">⛰</div>
+          <div><b class="small">Coorg</b><p class="xsmall muted" style="margin:2px 0 0;">Mountains · ~₹19,500</p></div>
+        </div>
+        <div class="card" style="cursor:pointer;display:flex;align-items:center;gap:12px;padding:10px;" onclick="quickStartWith('Udaipur')">
+          <div class="icon-circle" style="width:46px;height:46px;font-size:20px;background:var(--grad-sun);flex:0 0 auto;">🏰</div>
+          <div><b class="small">Udaipur</b><p class="xsmall muted" style="margin:2px 0 0;">Photography · ~₹32,000</p></div>
+        </div>
+      </div>
+
+      <p class="xsmall muted" style="text-align:center;margin:0 0 8px;">Don't see your place? Search any destination in India below.</p>
+      <button class="btn-primary" onclick="showScreen('dream-universal')">Start planning ↗</button>
+    </div>
+  </div>
+
+  <!-- HOME: RETURNING -->
+  <div class="screen" data-screen="home-returning">
+    <div class="row-between" style="margin-bottom:14px;">
+      <span id="greetingName" style="font-size:18px;font-weight:700;">Hi Rohan 👋</span>
+      <div style="width:32px;height:32px;border-radius:50%;background:var(--grad-coral);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;" id="avatarInitial">R</div>
+    </div>
+    <div id="returningCardWrap"></div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn-secondary" onclick="startNewTrip()">＋ New trip</button>
+    </div>
+  </div>
+
+  <!-- DREAM: UNIVERSAL -->
+  <div class="screen" data-screen="dream-universal">
+    <h1 class="voice">Plan your trip</h1>
+
+    <label class="field-label">From</label>
+    <input id="fromInput" value="Hyderabad, India" style="margin-bottom:12px;" oninput="state.from=this.value">
+
+    <label class="field-label">Travellers</label>
+    <div class="stepper-row" style="margin-bottom:5px;flex-wrap:wrap;gap:8px;">
+      <span class="small" style="display:flex;align-items:center;gap:7px;"><b>Adults</b>
+        <button class="step-btn" onclick="adjustCount('adults',-1)">−</button>
+        <span id="adultCount">2</span>
+        <button class="step-btn" onclick="adjustCount('adults',1)">+</button>
+      </span>
+      <span style="width:1px;height:18px;background:var(--border);"></span>
+      <a style="color:var(--coral-deep);font-weight:700;cursor:pointer;text-decoration:none;font-size:12.5px;" onclick="toggleKidsFields()">＋ Kids / Elders</a>
+    </div>
+    <div id="kidsFields" style="display:none;margin-bottom:10px;">
+      <div class="stepper-row" style="gap:14px;flex-wrap:wrap;">
+        <span class="small" style="display:flex;align-items:center;gap:7px;"><b>Children</b>
+          <button class="step-btn" onclick="adjustCount('children',-1)">−</button>
+          <span id="childCount">0</span>
+          <button class="step-btn" onclick="adjustCount('children',1)">+</button>
+        </span>
+        <span class="small" style="display:flex;align-items:center;gap:7px;"><b>Elders 50+</b>
+          <button class="step-btn" onclick="adjustCount('elders',-1)">−</button>
+          <span id="elderCount">0</span>
+          <button class="step-btn" onclick="adjustCount('elders',1)">+</button>
+        </span>
+      </div>
+    </div>
+
+    <label class="field-label">Dates</label>
+    <div style="display:flex;gap:8px;margin-bottom:6px;">
+      <button class="pill active" id="dateKnownBtn" style="flex:1;" onclick="toggleDates(true)">I know my dates</button>
+      <button class="pill" id="dateUnknownBtn" style="flex:1;" onclick="toggleDates(false)">Flexible dates</button>
+    </div>
+    <div id="datesKnown" style="display:flex;gap:8px;margin-bottom:3px;">
+      <div class="date-field" style="flex:1;">
+        <input class="date-input" id="depDisplay" readonly onclick="openCalendar('dep')">
+        <div class="cal-pop" id="depCal" style="display:none;"></div>
+      </div>
+      <div class="date-field" style="flex:1;">
+        <input class="date-input" id="retDisplay" readonly onclick="openCalendar('ret')">
+        <div class="cal-pop" id="retCal" style="display:none;"></div>
+      </div>
+    </div>
+    <div id="dateError" class="error-text" style="display:none;">Return date must be after departure date</div>
+    <p id="nightsLabel" class="xsmall muted" style="margin:3px 0 10px;"></p>
+
+    <div id="datesUnknown" style="display:none;flex-direction:column;gap:8px;margin-bottom:10px;">
+      <div style="display:flex;gap:8px;">
+        <div style="flex:1;">
+          <label class="field-label" style="margin-bottom:3px;">Month</label>
+          <select id="monthSelect" onchange="state.approxMonth=this.value"></select>
+        </div>
+        <div style="flex:1;">
+          <label class="field-label" style="margin-bottom:3px;">Nights</label>
+          <input value="5" oninput="state.expectedNights=this.value">
+        </div>
+      </div>
+      <p class="xsmall muted" style="margin:0;">We only use this to match season-appropriate places — no exact dates needed yet.</p>
+    </div>
+
+    <label class="field-label">Budget per person (optional)</label>
+    <div style="display:flex;align-items:center;gap:6px;background:#fff;border:1.5px solid var(--border);border-radius:11px;padding:9px 12px;margin-bottom:16px;">
+      <span class="muted" style="font-weight:700;">₹</span>
+      <input id="budgetInput" value="25000" style="border:none;padding:0;" oninput="state.budget=parseInt(this.value)||0">
+    </div>
+
+    <p class="small muted" style="margin-bottom:8px;font-weight:600;" id="planHowLabel">How do you want to plan?</p>
+    <div id="preselectedBlock" style="display:none;">
+      <div class="card" style="padding:15px;border:2px solid var(--coral);background:var(--coral-light);margin-bottom:8px;">
+        <div style="font-weight:700;font-size:14.5px;" id="preselectedTitle">📍 Continuing with Coorg</div>
+        <div class="small muted">We'll check it's a good fit for your dates and budget.</div>
+      </div>
+      <button class="btn-primary" style="margin-bottom:8px;" onclick="continueWithPreselected()">Continue ↗</button>
+      <button class="btn-ghost" onclick="clearPreselected()">Choose a different destination instead</button>
+    </div>
+    <div id="normalOptionsBlock">
+    <div class="card" style="padding:13px;margin-bottom:8px;cursor:pointer;box-shadow:none;" onclick="goToDiscover()">
+      <div style="font-weight:700;font-size:14px;">✨ Discover for me</div>
+      <div class="small muted">Tell us the vibe, we'll suggest destinations</div>
+    </div>
+    <div class="card" style="padding:13px;margin-bottom:8px;cursor:pointer;box-shadow:none;" onclick="showScreen('dream-compare')">
+      <div style="font-weight:700;font-size:14px;">⇄ Compare destinations</div>
+      <div class="small muted">Have a few places in mind? Compare side by side</div>
+    </div>
+    <div class="card" style="padding:13px;cursor:pointer;box-shadow:none;" onclick="showScreen('dream-validate')">
+      <div style="font-weight:700;font-size:14px;">📍 I know my destination</div>
+      <div class="small muted">Skip ahead, we'll just check it's a good fit</div>
+    </div>
+    </div>
+    <p class="xsmall muted" style="text-align:center;margin-top:12px;">Domestic (India) trips only, for now</p>
+  </div>
+
+  <!-- DREAM: DISCOVER FOR ME -->
+  <div class="screen" data-screen="dream-discover">
+    <div class="backrow" onclick="showScreen('dream-universal')">← Back to search</div>
+    <div id="discoverSummary" style="opacity:.55;margin-bottom:12px;padding-bottom:12px;border-bottom:1px dashed var(--border);font-size:11.5px;font-weight:600;"></div>
+
+    <label class="field-label">What are you into?</label>
+    <div id="interestPills" style="margin-bottom:16px;"></div>
+
+    <label class="field-label">Pace</label>
+    <div style="display:flex;gap:7px;margin-bottom:4px;" id="discoverPacePills">
+      <button class="pill" id="dpace-relaxed" style="flex:1;" onclick="selectDiscoverPace('relaxed')">Relaxed</button>
+      <button class="pill active" id="dpace-balanced" style="flex:1;" onclick="selectDiscoverPace('balanced')">Balanced</button>
+      <button class="pill" id="dpace-packed" style="flex:1;" onclick="selectDiscoverPace('packed')">Packed</button>
+    </div>
+    <p class="xsmall muted" style="margin:0 0 16px;">Helps us judge whether one place or a multi-city route fits your time.</p>
+
+    <label class="field-label">Anything else? (optional — add last)</label>
+    <textarea id="notesInput" style="min-height:64px;margin-bottom:16px;" placeholder="e.g. quiet, good for photography, avoid crowded spots" oninput="state.notes=this.value"></textarea>
+
+    <button class="btn-primary" onclick="runDiscovery()">Find destinations ↗</button>
+  </div>
+
+  <!-- DREAM: DISCOVER RESULTS -->
+  <div class="screen" data-screen="dream-results">
+    <div class="backrow" onclick="showScreen('dream-discover')">← Discover for me</div>
+    <h1 class="voice" id="resultsHeading" style="font-size:18px;"></h1>
+    <div id="mismatchBanner" style="display:none;" class="warn-box">
+      <span>⚠️</span>
+      <div>
+        <div style="font-weight:700;font-size:13px;">No perfect match found</div>
+        <div class="small muted" id="mismatchText"></div>
+      </div>
+    </div>
+    <div id="resultsList"></div>
+    <button class="btn-secondary" id="showMoreBtn" style="margin-top:4px;margin-bottom:8px;display:none;" onclick="showMoreDestinations(this)">✨ Show me more options</button>
+    <button class="btn-secondary" id="adjustPrefsBtn" style="border-style:dashed;display:none;" onclick="goAdjustPreferences()">Not quite right? Adjust my preferences</button>
+  </div>
+
+  <!-- DREAM: COMPARE -->
+  <div class="screen" data-screen="dream-compare">
+    <div class="backrow" onclick="showScreen('dream-universal')">← Back to search</div>
+    <div id="compareChips" style="margin-bottom:8px;"></div>
+    <div class="inline-add">
+      <input id="compareInput" placeholder="Type a destination name..." style="flex:1;">
+      <button class="btn-secondary" style="width:64px;" onclick="addCompareDestination()">Add</button>
+    </div>
+    <div id="compareError" class="error-text" style="display:none;margin-bottom:10px;"></div>
+    <div id="compareEmpty" class="small muted" style="text-align:center;padding:26px 0;">Add up to 5 destinations to compare them side by side.</div>
+    <div id="compareTableWrap" style="display:none;overflow-x:auto;margin-bottom:14px;"></div>
+    <div id="compareNote" class="xsmall" style="color:var(--teal);margin-bottom:12px;font-weight:600;"></div>
+  </div>
+
+  <!-- DREAM: VALIDATE -->
+  <div class="screen" data-screen="dream-validate">
+    <div class="backrow" onclick="showScreen('dream-universal')">← Back to search</div>
+    <div class="inline-add">
+      <input id="validateInput" placeholder="Type your destination..." style="flex:1;">
+      <button class="btn-secondary" style="width:64px;" onclick="runValidation()">Check</button>
+    </div>
+    <div id="validateResult"></div>
+  </div>
+
+  <!-- PLAN: P0 PREFERENCE CAPTURE -->
+  <div class="screen" data-screen="plan-preferences">
+    <div class="backrow" onclick="showScreen(state.cameFromScreen || 'dream-universal')">← Back to search</div>
+    <h1 class="voice">A few more details</h1>
+    <p class="small muted" style="margin-bottom:16px;">For <span id="planDestName">your trip</span> — helps us build a plan that actually fits.</p>
+
+    <label class="field-label">Stay style</label>
+    <div style="display:flex;gap:7px;margin-bottom:14px;">
+      <button class="pill" id="stay-budget" onclick="selectPref('stay','budget')">Budget</button>
+      <button class="pill active" id="stay-midrange" onclick="selectPref('stay','midrange')">Mid-range</button>
+      <button class="pill" id="stay-luxury" onclick="selectPref('stay','luxury')">Luxury</button>
+    </div>
+
+    <label class="field-label">Food preference</label>
+    <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px;">
+      <button class="pill active" onclick="toggleFoodPref(this,'Local & street food')">Local & street food</button>
+      <button class="pill" onclick="toggleFoodPref(this,'Vegetarian')">Vegetarian</button>
+      <button class="pill" onclick="toggleFoodPref(this,'Non-vegetarian')">Non-vegetarian</button>
+      <button class="pill" onclick="toggleFoodPref(this,'Fine dining')">Fine dining</button>
+    </div>
+
+    <label class="field-label">Pace</label>
+    <div style="display:flex;gap:7px;margin-bottom:5px;">
+      <button class="pill" id="pace-relaxed" onclick="selectPref('pace','relaxed')">Relaxed</button>
+      <button class="pill active" id="pace-balanced" onclick="selectPref('pace','balanced')">Balanced</button>
+      <button class="pill" id="pace-packed" onclick="selectPref('pace','packed')">Packed</button>
+    </div>
+    <p class="xsmall muted" style="margin:0 0 16px;">Relaxed: 1–2 activities/day · Balanced: 2–3 · Packed: 3–4</p>
+
+    <label class="field-label">Getting there</label>
+    <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:5px;">
+      <button class="pill active" id="ownTransport-agent" onclick="selectPref('ownTransport','agent')">Flight/Train/Bus</button>
+      <button class="pill" id="ownTransport-car" onclick="selectPref('ownTransport','car')">My own car</button>
+      <button class="pill" id="ownTransport-bike" onclick="selectPref('ownTransport','bike')">My own bike</button>
+    </div>
+    <p class="xsmall muted" style="margin:0 0 16px;">Driving yourself skips flight/train/bus bookings — we'll flag if the distance is realistic for your trip length.</p>
+
+    <label class="field-label">Anything specific? (optional — add last)</label>
+    <textarea id="prefNotes" style="min-height:56px;margin-bottom:16px;" placeholder="e.g. include only stays with a swimming pool" oninput="state.prefs.notes=this.value"></textarea>
+
+    <button class="btn-primary" onclick="runItineraryAgent()">Build my itinerary ↗</button>
+  </div>
+
+  <!-- PLAN: P1 ITINERARY VIEW -->
+  <div class="screen" data-screen="plan-itinerary">
+    <div class="backrow" onclick="showScreen('plan-preferences')">← Preferences</div>
+    <h1 class="voice" style="font-size:18px;margin:0 0 3px;" id="itinDestName">Your trip</h1>
+    <div id="itinLoading" style="text-align:center;padding:40px 20px;min-height:55vh;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+      <div style="font-size:52px;margin-bottom:16px;animation:gentlePulse 1.6s ease-in-out infinite;">🧭</div>
+      <p style="font-size:19px;font-weight:700;margin-bottom:8px;">Building your itinerary...</p>
+      <p class="small muted">This can take up to a minute — checking real places and travel times.</p>
+    </div>
+    <div id="itinContent" style="display:none;">
+      <div id="itineraryFallbackNote" class="warn-box" style="display:none;margin-bottom:14px;">
+        <span>⚠️</span>
+        <div><div class="small">Couldn't reach the itinerary agent — nothing honest to show right now. Try again in a moment.</div></div>
+      </div>
+      <div id="feasibilityWarning" class="warn-box" style="display:none;margin-bottom:14px;">
+        <span>⚠️</span>
+        <div><div class="small" id="feasibilityWarningText"></div></div>
+      </div>
+      <div id="budgetWarning" class="warn-box" style="display:none;margin-bottom:14px;">
+        <span>⚠️</span>
+        <div><div class="small" id="budgetWarningText"></div></div>
+      </div>
+      <div id="transportModeNote" class="warn-box" style="display:none;margin-bottom:14px;">
+        <span>💡</span>
+        <div><div class="small" id="transportModeNoteText"></div></div>
+      </div>
+
+      <div id="hotelBar" style="display:none;margin-bottom:12px;"></div>
+      <div style="display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;" id="dayTabs"></div>
+      <div id="dayContent"></div>
+
+      <p class="field-label" style="margin-top:14px;">Want to change something? Describe it below</p>
+      <div class="inline-add">
+        <input id="editInput" placeholder="e.g. make day 2 more relaxed, swap the museum" onkeydown="if(event.key==='Enter'){ event.preventDefault(); applyEdit(); }">
+        <button class="btn-secondary" style="width:70px;" onclick="applyEdit()">Apply</button>
+      </div>
+      <div id="editDiff" class="insight-box" style="display:none;"></div>
+
+      <button class="btn-primary" style="margin-top:18px;" onclick="goToBooking()">Book your trip ↗</button>
+    </div>
+  </div>
+
+  <!-- BOOK: LEG OVERVIEW -->
+  <div class="screen" data-screen="book-overview">
+    <div class="backrow" onclick="showScreen('plan-itinerary')">← Back to itinerary</div>
+    <h1 class="voice">Book your trip</h1>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+      <div class="progress"><div class="progress-fill" id="bookProgressFill" style="width:0%;"></div></div>
+      <span class="xsmall muted" id="bookProgressLabel" style="white-space:nowrap;">0 of 2 booked</span>
+    </div>
+    <div id="bookLegsList"></div>
+    <div id="addBookingArea"></div>
+    <p class="xsmall muted" style="margin:16px 0 8px;">Booking happens on the vendor's own site — Saathi never sees your payment details.</p>
+
+    <div class="card" style="padding:14px;margin-bottom:14px;">
+      <b class="small">💰 Budget</b>
+      <div class="row-between" style="margin:8px 0 4px;">
+        <span class="xsmall muted">Planned</span><span class="xsmall" style="font-weight:700;" id="bookBudgetPlanned">₹0</span>
+      </div>
+      <div class="row-between">
+        <span class="xsmall muted">Actual so far</span><span class="xsmall" style="font-weight:700;" id="bookBudgetActual">₹0</span>
+      </div>
+    </div>
+
+    <div id="bookGoTravelArea"></div>
+    <button class="btn-secondary" onclick="showScreen('plan-itinerary')">← Back to itinerary</button>
+  </div>
+
+  <!-- TRAVEL: T1-T6 HUB -->
+  <div class="screen" data-screen="travel-hub">
+    <div class="backrow" onclick="showScreen('book-overview')">← Back to booking</div>
+    <h1 class="voice" id="travelDestName">Your trip</h1>
+    <p class="small muted" id="travelReminder" style="margin-bottom:14px;"></p>
+
+    <div style="display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;" id="travelDayTabs"></div>
+    <div id="travelDayContent" style="margin-bottom:16px;"></div>
+
+    <div class="card" style="padding:14px;margin-bottom:14px;">
+      <b class="small">🧳 Bookings made</b>
+      <div id="travelBookingsList" style="margin-top:8px;"></div>
+    </div>
+
+    <div class="card" style="padding:14px;margin-bottom:14px;">
+      <b class="small">💰 Budget</b>
+      <div class="row-between" style="margin:8px 0 4px;">
+        <span class="xsmall muted">Planned</span><span class="xsmall" style="font-weight:700;" id="budgetPlanned">₹0</span>
+      </div>
+      <div class="row-between" style="margin-bottom:6px;cursor:pointer;" onclick="toggleExpenseBreakdown()">
+        <span class="xsmall muted" style="text-decoration:underline;">Actual so far ▾</span><span class="xsmall" style="font-weight:700;" id="budgetActual">₹0</span>
+      </div>
+      <div id="expenseBreakdown" style="display:none;margin-bottom:10px;"></div>
+      <p class="xsmall muted" style="margin:0 0 6px;">Log extra spending — anything not booked through the app.</p>
+      <div class="inline-add" style="margin-bottom:6px;">
+        <input id="expenseAmount" placeholder="Amount" style="flex:1;">
+        <select id="expenseCategory" style="flex:1;" onchange="toggleCustomCategory()">
+          <option>Breakfast</option><option>Lunch</option><option>Dinner</option><option>Snacks</option>
+          <option>Local transport</option><option>Shopping</option><option>Activities</option><option value="__custom">Other</option>
+        </select>
+        <button class="btn-secondary" style="width:56px;" onclick="addExpense()">Add</button>
+      </div>
+      <input id="expenseCategoryCustom" placeholder="Custom category name" style="display:none;">
+    </div>
+
+    <div class="card" id="travelAdaptCard" style="padding:14px;margin-bottom:14px;display:none;">
+      <b class="small">Something changed?</b>
+      <div class="inline-add" style="margin:8px 0 6px;">
+        <input id="adaptInput" placeholder="e.g. missed my train, need a new plan for today">
+        <button class="btn-secondary" style="width:70px;" onclick="applyAdaptation()">Apply</button>
+      </div>
+      <div id="adaptResult" class="insight-box" style="display:none;"></div>
+    </div>
+
+    <button class="btn-primary" onclick="showScreen('trip-feedback')">End trip & give feedback ↗</button>
+  </div>
+
+  <!-- REMEMBER: R0 TRIP FEEDBACK CAPTURE -->
+  <div class="screen" data-screen="trip-feedback">
+    <div class="backrow" onclick="showScreen('travel-hub')">← Back to trip</div>
+    <h1 class="voice">How was it?</h1>
+    <p class="small muted" style="margin-bottom:18px;">Quick feedback on <span id="feedbackDestName"></span> — helps us get better, not used to auto-adjust anything yet.</p>
+    <div style="display:flex;gap:10px;margin-bottom:16px;justify-content:center;font-size:30px;">
+      <span style="cursor:pointer;" onclick="selectRating(1)">😞</span>
+      <span style="cursor:pointer;" onclick="selectRating(2)">😐</span>
+      <span style="cursor:pointer;" onclick="selectRating(3)">🙂</span>
+      <span style="cursor:pointer;" onclick="selectRating(4)">😄</span>
+      <span style="cursor:pointer;" onclick="selectRating(5)">🤩</span>
+    </div>
+    <textarea id="feedbackComment" style="min-height:70px;margin-bottom:16px;" placeholder="Anything you want to add? (optional)"></textarea>
+    <button class="btn-primary" onclick="submitFeedback()">Submit feedback</button>
+  </div>
+
+</div>
+
+<div id="confirmModalOverlay" style="display:none;position:fixed;inset:0;background:rgba(32,35,43,0.45);z-index:9998;align-items:center;justify-content:center;padding:24px;">
+  <div class="card" style="max-width:340px;width:100%;padding:18px;box-shadow:var(--shadow-lg);margin:0;">
+    <p class="small" id="confirmModalText" style="margin:0 0 16px;font-weight:600;line-height:1.4;"></p>
+    <div style="display:flex;gap:8px;">
+      <button class="btn-secondary" id="confirmModalCancelBtn" style="height:38px;font-size:13px;">Cancel</button>
+      <button class="btn-primary" id="confirmModalOkBtn" style="height:38px;font-size:13px;">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- CONFIRM MODAL (delete / itinerary-sync / replan prompts) ---------- */
+// One reusable modal — no destructive or itinerary-writing action fires without this,
+// per the standing rule that delete and itinerary updates are never silent.
+function showConfirmModal(message, onConfirm, cancelLabel){
+  const overlay = document.getElementById('confirmModalOverlay');
+  document.getElementById('confirmModalText').textContent = message;
+  const cancelBtn = document.getElementById('confirmModalCancelBtn');
+  const okBtn = document.getElementById('confirmModalOkBtn');
+  cancelBtn.textContent = cancelLabel || 'Cancel';
+  overlay.style.display = 'flex';
+  const cleanup = ()=>{ overlay.style.display = 'none'; okBtn.onclick = null; cancelBtn.onclick = null; };
+  okBtn.onclick = ()=>{ cleanup(); onConfirm(); };
+  cancelBtn.onclick = cleanup;
+}
+
+/* ---------- STATE ---------- */
+const today = new Date();
+const state = {
+  from: "Hyderabad, India",
+  adults: 2, children: 0, childAges: [], elders: 0,
+  datesKnown: true,
+  dep: {y:today.getFullYear(), m:today.getMonth(), d:today.getDate()},
+  ret: (function(){ const r = new Date(today); r.setDate(r.getDate()+5); return {y:r.getFullYear(), m:r.getMonth(), d:r.getDate()}; })(),
+  approxMonth: "November", expectedNights: 5,
+  budget: 25000,
+  interests: ["Beaches","Photography"],
+  notes: "",
+  compareList: [],
+  compareDataCache: {},
+  chosenDestination: null,
+  // Discovery's estimated_cost_per_person for the chosen destination — captured once at
+  // chooseDestination() (see there for why). Used only for the Budget "Planned" figure
+  // (× adults, adults-only — see renderBudgetSummary). Not sent to the itinerary agent;
+  // the itinerary agent's own per-item costs are not reliable enough for hotel/transport
+  // (no hotel_suggestion price field, no transport_cost field, child-fare handling is
+  // inconsistent across transport types) so we deliberately don't use those for Planned.
+  destinationCostPerPerson: null,
+  chosenStops: null,
+  preselectedDestination: null,
+  user: { name: 'Rohan', gender: 'male', completedSignup: false },
+  prefs: { stay:'midrange', food:['Local & street food'], pace:'balanced', notes:'', ownTransport:'agent' },
+  itinerary: null, currentDay: 0,
+  legFeedbackGiven: {}, viewedCheckoutDay: false
+};
+
+const INTEREST_OPTIONS = ["Beaches","Mountains","Snow","Pilgrimage","Photography","Wildlife","Food"];
+const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const INTERNATIONAL_KEYWORDS = ["china","dubai","paris","london","thailand","singapore","bali","tokyo","new york","usa","america","uae","nepal","sri lanka","maldives","japan","italy","france","germany","australia","canada","vietnam","malaysia","indonesia"];
+
+const DESTINATIONS = [
+  {name:"Gokarna", tags:["Beaches","Photography"], cost:22000, season:"Oct–Feb", travel:"8h", crowd:"Low", safety:"Good", ideal:"Couples, solo", icon:"🏖", attractions:["Om Beach","Mirjan Fort","Kudle Beach"]},
+  {name:"Varkala", tags:["Beaches"], cost:27500, season:"Nov–Mar", travel:"10h", crowd:"Low", safety:"Good", ideal:"Couples", icon:"🌊", attractions:["Varkala Cliff","Janardanaswamy Temple","Papanasam Beach"]},
+  {name:"Coorg", tags:["Mountains","Food"], cost:19500, season:"Oct–May", travel:"7h", crowd:"Low", safety:"Very good", ideal:"Families, couples", icon:"⛰", attractions:["Abbey Falls","Raja's Seat","Coffee estates"]},
+  {name:"Munnar", tags:["Mountains","Photography"], cost:24000, season:"Sep–Mar", travel:"9h", crowd:"Moderate", safety:"Very good", ideal:"Families", icon:"🍃", attractions:["Tea gardens","Eravikulam Park","Mattupetty Dam"]},
+  {name:"Udaipur", tags:["Photography"], cost:32000, season:"Oct–Mar", travel:"12h", crowd:"Moderate", safety:"Good", ideal:"Couples", icon:"🏰", attractions:["City Palace","Lake Pichola","Jag Mandir"]},
+  {name:"Jaipur", tags:["Food","Photography"], cost:41000, season:"Oct–Mar", travel:"11h", crowd:"High", safety:"Good", ideal:"Families, groups", icon:"🕌", attractions:["Amber Fort","Hawa Mahal","City Palace"]},
+  {name:"Manali", tags:["Mountains","Snow"], cost:26000, season:"Dec–Feb", travel:"14h", crowd:"High", safety:"Good", ideal:"Groups, families", icon:"❄️", attractions:["Solang Valley","Rohtang Pass","Old Manali"]},
+  {name:"Ooty", tags:["Mountains"], cost:21000, season:"Sep–May", travel:"10h", crowd:"Moderate", safety:"Very good", ideal:"Families", icon:"🌲", attractions:["Botanical Garden","Ooty Lake","Doddabetta Peak"]}
+];
+
+const HOTEL_POOL = ["The Verandah Homestay","Misty Hills Resort","Palm Grove Inn","Lakeside Retreat","Heritage Courtyard Stay"];
+// Used only when the agent didn't supply enough real activities for a slot. This used to
+// be a list of generic activity types ("Boating on the lake," "Coffee estate tour") that
+// assumed every destination has a lake, a coffee estate, a waterfall — wrong for plenty of
+// real places (a beach city has no lake). Rather than guess a plausible-sounding but
+// possibly-nonexistent activity type, this is now an honest "we don't have a specific
+// suggestion" filler — consistent with the same honesty principle used everywhere else.
+const ACTIVITY_POOL_FALLBACK_NAME = "Free time to explore at your own pace";
+const MEAL_POOL = [
+  {name:"Neer dosa & filter coffee", slot:"Breakfast"},
+  {name:"Local thali — street food lunch", slot:"Lunch"},
+  {name:"Regional specialty dinner", slot:"Dinner"},
+  {name:"Slow-roast local curry dinner", slot:"Dinner"}
+];
+
+/* ---------- NAV ---------- */
+// Off by default — this is the flat screen-jump bar and sample-trip shortcuts used for
+// testing throughout tonight's build, never meant for a real user to see. Flip to true
+// locally when you need fast navigation for dev/QA; the real flow (signup → home →
+// discover → plan → book → travel → remember) works entirely on its own via each
+// screen's real buttons regardless of this flag.
+const DEV_MODE = false;
+const screens = ["signup","signin","home-new","home-returning","dream-universal","dream-discover","dream-results","dream-compare","dream-validate","plan-preferences","plan-itinerary","book-overview","travel-hub","trip-feedback"];
+const labels = {
+  "signup":"Sign up (mock)", "signin":"Sign in (mock)", "home-new":"Home (new)", "home-returning":"Home (returning)", "dream-universal":"Search",
+  "dream-discover":"Discover: Input", "dream-results":"Discover: Results",
+  "dream-compare":"Compare", "dream-validate":"Validate",
+  "plan-preferences":"Plan: Prefs", "plan-itinerary":"Plan: Itinerary", "book-overview":"Book",
+  "travel-hub":"Travel", "trip-feedback":"Feedback (R0)"
+};
+const navBar = document.getElementById('navBar');
+if(DEV_MODE){
+screens.forEach(s=>{
+  const b = document.createElement('button');
+  b.textContent = labels[s];
+  b.onclick = ()=>showScreen(s);
+  b.id = 'nav-'+s;
+  navBar.appendChild(b);
+});
+// Dev/test-only shortcut — same QA harness as the screen-jump nav bar above, not
+// something a real user should see. Skips Discovery + Itinerary agent calls entirely
+// so Booking can be tested without waiting on either every time.
+(function addSampleTripButton(){
+  const b1 = document.createElement('button');
+  b1.textContent = '🧪 Sample trip → Plan';
+  b1.title = 'Lands on the real Plan/Itinerary screen — click "Book your trip" yourself to test the actual flow';
+  b1.onclick = ()=>{ if(!state.itinerary) loadSampleItinerary(); showScreen('plan-itinerary'); };
+  navBar.appendChild(b1);
+  const b2 = document.createElement('button');
+  b2.textContent = '🧪 Sample trip → Book';
+  b2.title = 'Jumps straight into Booking — for testing Booking in isolation, skips the Plan screen entirely';
+  b2.onclick = ()=>{ if(!state.itinerary) loadSampleItinerary(); goToBooking(); };
+  navBar.appendChild(b2);
+  const b3 = document.createElement('button');
+  b3.textContent = '↺ Reset sample trip';
+  b3.title = 'Explicitly wipes current test data and loads a fresh mock trip';
+  b3.onclick = ()=>{ state.itinerary = null; state.bookingLegs = null; loadSampleItinerary(); showScreen('plan-itinerary'); };
+  navBar.appendChild(b3);
+})();
+} // end DEV_MODE
+// Hand-built itinerary matching the exact shape both renderItinerary() (real Plan
+// screen) and buildBookingLegs()/renderBudget() (Booking) read — bookType tags,
+// day_number, hotel_suggestion — so either dev button above renders correctly, no
+// Discovery or Itinerary agent call involved either way.
+function loadSampleItinerary(){
+  state.chosenDestination = 'Gokarna';
+  state.destinationCostPerPerson = 11000; // mock Discovery estimate, for testing Planned budget
+  state.chosenStops = null;
+  state.currentDay = 0;
+  state.itinerary = {
+    destination: { name: 'Gokarna' },
+    stops: null,
+    hotel_suggestion: 'Palm Grove Inn',
+    hotel_reason: 'Midrange stay close to Om Beach, matches your stated preference.',
+    hotel_verified: true,
+    days: [
+      {
+        day_number: 1, label: 'Day 1', stopIndex: 0, day_purpose: 'Arrival',
+        items: [
+          { type:'transport', transport_mode:'Flight', activity:'Board flight to Gokarna · 6E-2341', time:'09:30 AM' },
+          { type:'transport', transport_mode:'Cab', activity:'Transfer to Palm Grove Inn', place_name:'Palm Grove Inn', time:'02:00 PM' }
+        ]
+      },
+      {
+        day_number: 2, label: 'Day 2', stopIndex: 0, day_purpose: 'Beaches & local food',
+        items: [
+          { type:'activity', time_fit:'morning', duration_hours:2, time:'10:00 AM', activity:'Om Beach visit', place_name:'Om Beach', is_paid:false },
+          { type:'meal', time:'01:00 PM', activity:'Local thali — street food lunch', is_paid:true, estimated_cost_per_person:550 }
+        ]
+      },
+      {
+        day_number: 3, label: 'Day 3', stopIndex: 0, day_purpose: 'Departure',
+        items: [
+          { type:'transport', transport_mode:'Cab', activity:'Check out from Palm Grove Inn', time:'11:00 AM' },
+          { type:'transport', transport_mode:'Flight', activity:'Board flight from Gokarna · 6E-2348', time:'06:45 PM' }
+        ]
+      }
+    ]
+  };
+  state.bookingLegs = null; // force a fresh build against this itinerary
+  toast('Loaded a sample itinerary — no agent calls made');
+}
+function renderReturningCard(){
+  const wrap = document.getElementById('returningCardWrap');
+  if(!state.itinerary){
+    const hasResults = Array.isArray(state.allDiscoveredDestinations) && state.allDiscoveredDestinations.length > 0;
+    const hasCompare = Array.isArray(state.compareList) && state.compareList.length > 0;
+    if(hasResults || hasCompare){
+      // Both label the same ("Continue Discovering") per the simplified design, but
+      // route back to whichever screen the data actually belongs to — reusing
+      // lastDiscoveryScreen (tracked in showScreen()) to prefer whichever was visited
+      // more recently if both exist, rather than always favoring one.
+      const target = (state.lastDiscoveryScreen === 'dream-compare' && hasCompare) ? 'dream-compare'
+        : (state.lastDiscoveryScreen === 'dream-results' && hasResults) ? 'dream-results'
+        : hasResults ? 'dream-results' : 'dream-compare';
+      const desc = target === 'dream-compare'
+        ? `${state.compareList.length} destination${state.compareList.length>1?'s':''} added to compare`
+        : `${state.allDiscoveredDestinations.length} destination${state.allDiscoveredDestinations.length>1?'s':''} found for your search`;
+      wrap.innerHTML = `
+        <div class="card" style="padding:15px;">
+          <span class="xsmall muted" style="font-weight:700;text-transform:uppercase;">Continue Discovering</span>
+          <p style="font-size:15px;margin:6px 0 14px;">${desc}</p>
+          <button class="btn-primary" onclick="showScreen('${target}')">Continue →</button>
+        </div>`;
+      return;
+    }
+    wrap.innerHTML = `
+      <div class="card" style="padding:15px;text-align:center;">
+        <p class="small muted" style="margin:0 0 10px;">No active trip yet.</p>
+        <button class="btn-primary" onclick="showScreen('dream-universal')">Start planning ↗</button>
+      </div>`;
+    return;
+  }
+  const it = state.itinerary;
+  const legs = state.bookingLegs || buildBookingLegs();
+  const confirmedN = legs.filter(l=>l.status==='confirmed').length;
+  const allBooked = confirmedN === legs.length;
+  wrap.innerHTML = `
+    <div class="card" style="padding:15px;">
+      <span class="xsmall muted" style="font-weight:700;text-transform:uppercase;">${allBooked?'All set':'Currently planning'}</span>
+      <p style="font-size:17px;font-weight:700;margin:2px 0 10px;">${it.destination.name}, ${state.nights||it.days.length} days</p>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <div class="progress"><div class="progress-fill" style="width:${(confirmedN/legs.length)*100}%;"></div></div>
+        <span class="xsmall muted" style="white-space:nowrap;">${confirmedN} of ${legs.length} booked</span>
+      </div>
+      <div class="small" style="margin-bottom:10px;line-height:1.7;">
+        <div>✅ Destination and itinerary set</div>
+        <div>${confirmedN>0?'✅':'⚪'} ${confirmedN>0?'Some bookings confirmed':'Bookings not started'}</div>
+        <div>${allBooked?'✅':'⚪'} All legs booked</div>
+      </div>
+      <button class="btn-primary" onclick="showScreen('${allBooked?'travel-hub':'book-overview'}')">${allBooked?'Go to Travel':'Continue booking'} ↗</button>
+    </div>`;
+
+  renderLegFeedbackCard();
+}
+
+function eligibleUnratedLeg(){
+  const legs = state.bookingLegs || buildBookingLegs();
+  const eligibleTypes = ['hotel','train','bus'];
+  const realDatePassed = (function(){
+    if(!state.itinerary) return false;
+    const dep = state.dep;
+    const depDate = new Date(dep.y, dep.m, dep.d);
+    const endEstimate = new Date(depDate); endEstimate.setDate(endEstimate.getDate() + (state.nights||5));
+    return new Date() > endEstimate;
+  })();
+  if(!realDatePassed && !state.viewedCheckoutDay) return null;
+  return legs.find(l => eligibleTypes.includes(l.type) && l.status==='confirmed' && !state.legFeedbackGiven[l.id]) || null;
+}
+
+function renderLegFeedbackCard(){
+  let card = document.getElementById('legFeedbackCard');
+  const leg = eligibleUnratedLeg();
+  if(!leg){
+    if(card) card.remove();
+    return;
+  }
+  const label = leg.type==='hotel' ? leg.name : `your ${leg.type} to/from ${state.itinerary.destination.name}`;
+  const html = `
+    <div class="card" id="legFeedbackCard" style="padding:15px;margin-top:12px;border:1.5px solid var(--coral);">
+      <b class="small">Did ${label} match what was shown?</b>
+      <p class="xsmall muted" style="margin:4px 0 10px;">Quick feedback — feeds the confidence signal other travelers see.</p>
+      <div style="display:flex;gap:8px;margin-bottom:10px;">
+        <button class="btn-secondary" style="flex:1;" onclick="submitLegFeedback('${leg.id}', true)">👍 Matched</button>
+        <button class="btn-secondary" style="flex:1;" onclick="submitLegFeedback('${leg.id}', false)">👎 Didn't match</button>
+      </div>
+      <button class="btn-ghost" onclick="dismissLegFeedback()">Skip for now</button>
+    </div>`;
+  if(card){ card.outerHTML = html; }
+  else { document.getElementById('returningCardWrap').insertAdjacentHTML('beforeend', html); }
+}
+function submitLegFeedback(legId, matched){
+  state.legFeedbackGiven[legId] = true;
+  toast(matched ? "Thanks! This helps confirm the listing is accurate." : "Thanks — flagged for review, this affects the confidence signal.");
+  renderLegFeedbackCard();
+}
+function dismissLegFeedback(){
+  const card = document.getElementById('legFeedbackCard');
+  if(card) card.remove();
+}
+
+let draftToastShown = false;
+function syncUniversalScreen(){
+  document.getElementById('fromInput').value = state.from;
+  document.getElementById('adultCount').textContent = state.adults;
+  document.getElementById('childCount').textContent = state.children;
+  document.getElementById('elderCount').textContent = state.elders;
+  document.getElementById('budgetInput').value = state.budget;
+  toggleDates(state.datesKnown);
+  updateDateDisplays();
+  if(hadDraft && !draftToastShown){ toast('Welcome back — restored your last search'); draftToastShown = true; }
+}
+
+// True if there's anything at all worth landing on home-returning for — a generated
+// itinerary, or (now) unpicked Discovery/Compare results. Shared by the mid-session
+// "Home" redirect below and the page-load routing at the bottom of this file, so both
+// stay in sync rather than checking slightly different conditions.
+function hasAnyReturningProgress(){
+  return !!state.itinerary
+    || (Array.isArray(state.allDiscoveredDestinations) && state.allDiscoveredDestinations.length > 0)
+    || (Array.isArray(state.compareList) && state.compareList.length > 0);
+}
+function showScreen(id){
+  persistDraft();
+  if(id==='home-new' && hasAnyReturningProgress()) id = 'home-returning'; // reopening the app with progress goes to that progress, not a blank slate
+  document.querySelectorAll('.screen').forEach(el=>el.classList.remove('active'));
+  document.querySelector(`[data-screen="${id}"]`).classList.add('active');
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
+  const navBtn = document.getElementById('nav-'+id);
+  if(navBtn) navBtn.classList.add('active');
+  window.scrollTo(0,0);
+  if(id==='dream-universal') syncUniversalScreen();
+  if(id==='home-returning'){
+    document.getElementById('greetingName').textContent = state.user.completedSignup ? `Hi ${state.user.name} 👋` : 'Welcome back 👋';
+    document.getElementById('avatarInitial').textContent = state.user.completedSignup ? state.user.name.charAt(0).toUpperCase() : '👤';
+    renderReturningCard();
+  }
+  if(id==='dream-universal') renderUniversalPlanOptions();
+  if(id==='dream-discover') renderDiscoverScreen();
+  if(id==='dream-results'){
+    state.lastDiscoveryScreen = 'dream-results';
+    // Landing here normally (mid-session, via runDiscovery) already has the list
+    // rendered in the DOM. Landing here from a restored session (via "Continue
+    // Discovering") has the DATA in state but an empty DOM — runDiscovery() built the
+    // list as a side effect of the live fetch, so there was never a path that
+    // re-renders from already-known data. Rebuild it here if the DOM's empty but state
+    // has results, so this only ever runs on a genuinely cold restore, not every visit.
+    const list = document.getElementById('resultsList');
+    if(list && !list.children.length && state.allDiscoveredDestinations && state.allDiscoveredDestinations.length){
+      document.getElementById('resultsHeading').textContent = `${state.allDiscoveredDestinations.length} places that fit`;
+      document.getElementById('mismatchBanner').style.display = 'none';
+      state.revealedCount = 0;
+      revealNextBatch();
+      renderCompareBridge();
+    }
+    persistDraft();
+  }
+  if(id==='dream-compare'){ renderCompare(); state.lastDiscoveryScreen = 'dream-compare'; persistDraft(); }
+  if(id==='plan-preferences') setPlanDestName();
+  if(id==='plan-itinerary' && !state.itinerary) { /* nothing to render yet — runItineraryAgent drives this screen directly */ }
+  if(id==='plan-itinerary') renderItinerary();
+  if(id==='book-overview'){ if(state.itinerary) refreshBookingLegs(); renderBookScreen(); }
+  if(id==='travel-hub') renderTravelHub();
+  if(id==='trip-feedback') document.getElementById('feedbackDestName').textContent = state.itinerary ? state.itinerary.destination.name : 'your trip';
+}
+
+/* ---------- TRAVELLERS ---------- */
+function adjustCount(key, delta){
+  if(key==='adults'){ state.adults = Math.max(1, state.adults+delta); document.getElementById('adultCount').textContent = state.adults; }
+  if(key==='elders'){ state.elders = Math.max(0, state.elders+delta); document.getElementById('elderCount').textContent = state.elders; }
+  if(key==='children'){
+    state.children = Math.max(0, state.children+delta);
+    document.getElementById('childCount').textContent = state.children;
+  }
+}
+function toggleKidsFields(){
+  const el = document.getElementById('kidsFields');
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+function togglePill(el){ el.classList.toggle('active'); }
+function toggleFoodPref(el, value){
+  el.classList.toggle('active');
+  const idx = state.prefs.food.indexOf(value);
+  if(idx===-1) state.prefs.food.push(value); else state.prefs.food.splice(idx,1);
+}
+function selectGender(g){
+  state.user.gender = g;
+  ['female','male','other'].forEach(k=>document.getElementById('gender-'+k).classList.toggle('active', k===g));
+}
+function completeSignup(){
+  const name = document.getElementById('signupName').value.trim();
+  const lastName = document.getElementById('signupLastName').value.trim();
+  if(name) state.user.name = name;
+  if(lastName) state.user.lastName = lastName;
+  state.user.completedSignup = true;
+  if(state.user.gender==='female'){
+    toast(`Welcome, ${state.user.name}! We'll surface safety ratings more prominently for you.`);
+  } else {
+    toast(`Welcome, ${state.user.name}!`);
+  }
+  showScreen('home-new');
+}
+function toggleSigninMode(mode){
+  document.getElementById('signin-phone').classList.toggle('active', mode==='phone');
+  document.getElementById('signin-email').classList.toggle('active', mode==='email');
+  document.getElementById('signinInput').placeholder = mode==='phone' ? 'Enter mobile number' : 'Enter email address';
+}
+function sendSigninOtp(){
+  const val = document.getElementById('signinInput').value.trim();
+  if(!val){ toast('Enter your phone or email first'); return; }
+  document.getElementById('signinOtpBlock').style.display = 'block';
+  toast(`OTP sent (mock) — enter any digits below`);
+}
+function verifySigninOtp(){
+  const otp = document.getElementById('signinOtp').value.trim();
+  if(!otp){ toast('Enter the OTP'); return; }
+  state.user.completedSignup = true;
+  toast(`Welcome back, ${state.user.name}!`);
+  showScreen('home-new');
+}
+function toggleSignupMode(mode){
+  document.getElementById('signup-phone').classList.toggle('active', mode==='phone');
+  document.getElementById('signup-email').classList.toggle('active', mode==='email');
+  document.getElementById('signupInput').placeholder = mode==='phone' ? 'Enter mobile number' : 'Enter email address';
+}
+
+/* ---------- MONTH DROPDOWN INIT ---------- */
+(function initMonthSelect(){
+  const sel = document.getElementById('monthSelect');
+  sel.innerHTML = MONTH_NAMES.map((m,i)=>{
+    const full = new Date(2025,i,1).toLocaleString('en-US',{month:'long'});
+    return `<option value="${full}" ${full==='November'?'selected':''}>${full}</option>`;
+  }).join('');
+})();
+
+/* ---------- CALENDAR ---------- */
+function toggleDates(known){
+  state.datesKnown = known;
+  document.getElementById('datesKnown').style.display = known ? 'flex' : 'none';
+  document.getElementById('dateError').style.display = 'none';
+  document.getElementById('nightsLabel').style.display = known ? 'block' : 'none';
+  document.getElementById('datesUnknown').style.display = known ? 'none' : 'flex';
+  document.getElementById('dateKnownBtn').classList.toggle('active', known);
+  document.getElementById('dateUnknownBtn').classList.toggle('active', !known);
+}
+function openCalendar(which){
+  document.getElementById('depCal').style.display = 'none';
+  document.getElementById('retCal').style.display = 'none';
+  const el = document.getElementById(which+'Cal');
+  el.style.display = 'block';
+  renderCalendar(which);
+}
+function renderCalendar(which){
+  const val = state[which];
+  const el = document.getElementById(which+'Cal');
+  const first = new Date(val.y, val.m, 1);
+  const startDow = first.getDay();
+  const daysInMonth = new Date(val.y, val.m+1, 0).getDate();
+  let cells = '';
+  for(let i=0;i<startDow;i++) cells += `<div class="cal-day empty"></div>`;
+  for(let d=1; d<=daysInMonth; d++){
+    const isSelected = d===val.d;
+    const isToday = d===today.getDate() && val.m===today.getMonth() && val.y===today.getFullYear();
+    let disabled = false;
+    const thisDate = new Date(val.y, val.m, d);
+    if(thisDate < new Date(today.getFullYear(),today.getMonth(),today.getDate())) disabled = true;
+    if(which==='ret'){
+      const depDate = new Date(state.dep.y, state.dep.m, state.dep.d);
+      if(thisDate <= depDate) disabled = true;
+    }
+    cells += `<div class="cal-day ${isSelected?'selected':''} ${isToday&&!isSelected?'today':''} ${disabled?'disabled':''}" ${disabled?'':`onclick="selectDate('${which}',${d},event)"`}>${d}</div>`;
+  }
+  el.setAttribute('onclick','event.stopPropagation()');
+  el.innerHTML = `
+    <div class="cal-head">
+      <span onclick="shiftMonth('${which}',-1,event)" style="cursor:pointer;">‹</span>
+      <span>${MONTH_NAMES[val.m]} ${val.y}</span>
+      <span onclick="shiftMonth('${which}',1,event)" style="cursor:pointer;">›</span>
+    </div>
+    <div class="cal-grid">
+      ${['S','M','T','W','T','F','S'].map(d=>`<div class="cal-dow">${d}</div>`).join('')}
+      ${cells}
+    </div>`;
+}
+function shiftMonth(which, delta, evt){
+  if(evt) evt.stopPropagation();
+  const val = state[which];
+  let m = val.m + delta, y = val.y;
+  if(m<0){m=11;y--;} if(m>11){m=0;y++;}
+  state[which] = {y,m,d: Math.min(val.d, new Date(y,m+1,0).getDate())};
+  renderCalendar(which);
+}
+function selectDate(which, day, evt){
+  if(evt) evt.stopPropagation();
+  state[which].d = day;
+  document.getElementById(which+'Cal').style.display = 'none';
+  updateDateDisplays();
+}
+function updateDateDisplays(){
+  const dep = state.dep, ret = state.ret;
+  document.getElementById('depDisplay').value = `${dep.d} ${MONTH_NAMES[dep.m]} ${dep.y}`;
+  document.getElementById('retDisplay').value = `${ret.d} ${MONTH_NAMES[ret.m]} ${ret.y}`;
+  const depDate = new Date(dep.y,dep.m,dep.d), retDate = new Date(ret.y,ret.m,ret.d);
+  const errorEl = document.getElementById('dateError');
+  const nightsEl = document.getElementById('nightsLabel');
+  if(retDate <= depDate){
+    errorEl.style.display = 'block';
+    nightsEl.textContent = '';
+  } else {
+    errorEl.style.display = 'none';
+    const nights = Math.round((retDate-depDate)/86400000);
+    nightsEl.textContent = `${nights} nights`;
+    state.nights = nights;
+  }
+}
+document.addEventListener('click', (e)=>{
+  if(!e.target.closest('.date-field')){
+    document.getElementById('depCal').style.display = 'none';
+    document.getElementById('retCal').style.display = 'none';
+  }
+});
+updateDateDisplays();
+
+/* ---------- DISCOVER ---------- */
+function quickStartWith(destName){
+  state.preselectedDestination = destName;
+  showScreen('dream-universal');
+}
+function renderUniversalPlanOptions(){
+  const pre = document.getElementById('preselectedBlock');
+  const normal = document.getElementById('normalOptionsBlock');
+  if(state.preselectedDestination){
+    pre.style.display = 'block';
+    normal.style.display = 'none';
+    document.getElementById('preselectedTitle').textContent = `📍 Continuing with ${state.preselectedDestination}`;
+  } else {
+    pre.style.display = 'none';
+    normal.style.display = 'block';
+  }
+}
+function continueWithPreselected(){
+  document.getElementById('validateInput').value = state.preselectedDestination;
+  showScreen('dream-validate');
+  runValidation();
+}
+function clearPreselected(){
+  state.preselectedDestination = null;
+  renderUniversalPlanOptions();
+}
+function goToDiscover(){ showScreen('dream-discover'); }
+function goAdjustPreferences(){
+  toast('Your previous answers are still here — tweak anything');
+  showScreen('dream-discover');
+}
+function selectDiscoverPace(p){
+  state.prefs.pace = p;
+  ['relaxed','balanced','packed'].forEach(pace=>document.getElementById('dpace-'+pace).classList.toggle('active', pace===p));
+}
+function renderDiscoverScreen(){
+  document.getElementById('discoverSummary').innerHTML =
+    `${state.from} · ${state.adults} Adult${state.adults>1?'s':''}${state.children?` · ${state.children} kids`:''}${state.elders?` · ${state.elders} elders`:''} · ${state.nights||5} nights · ₹${state.budget.toLocaleString()}`;
+  ['relaxed','balanced','packed'].forEach(p=>document.getElementById('dpace-'+p).classList.toggle('active', state.prefs.pace===p));
+  const pillsWrap = document.getElementById('interestPills');
+  pillsWrap.innerHTML = '';
+  INTEREST_OPTIONS.forEach(tag=>{
+    const active = state.interests.includes(tag);
+    const btn = document.createElement('button');
+    btn.className = 'pill' + (active?' active':'');
+    btn.textContent = tag;
+    btn.onclick = ()=>{
+      if(state.interests.includes(tag)) state.interests = state.interests.filter(t=>t!==tag);
+      else state.interests.push(tag);
+      renderDiscoverScreen();
+    };
+    pillsWrap.appendChild(btn);
+  });
+  document.getElementById('notesInput').value = state.notes;
+}
+
+const N8N_DISCOVERY_WEBHOOK_URL = 'https://nammu1012.app.n8n.cloud/webhook/499f8b90-3586-4c92-807f-50181d10515f';
+const N8N_ENRICHMENT_WEBHOOK_URL = 'https://nammu1012.app.n8n.cloud/webhook/0701cbf0-fdab-498d-b6d9-f9c7bd477ed4';
+const N8N_ITINERARY_WEBHOOK_URL = 'https://nammu1012.app.n8n.cloud/webhook/b69d3a65-c4d8-44e2-8095-f9fa71e736fd';
+// Left blank on purpose — no n8n workflow exists yet to receive this upload and write it
+// to the `booking-screenshots` Supabase Storage bucket + the `bookings` row. Until one
+// exists (multipart in, service-role upload, return {path}), uploadScreenshotIfPresent()
+// below falls back to an in-browser preview only — real per-user isolation and
+// persistence both depend on that workflow existing, not on anything client-side.
+const N8N_UPLOAD_SCREENSHOT_WEBHOOK_URL = '';
+
+async function runDiscovery(){
+  const heading = document.getElementById('resultsHeading');
+  const banner = document.getElementById('mismatchBanner');
+  const list = document.getElementById('resultsList');
+
+  list.innerHTML = `<div style="text-align:center;padding:40px 20px;min-height:45vh;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+    <div style="font-size:52px;margin-bottom:16px;animation:gentlePulse 1.6s ease-in-out infinite;">✨</div>
+    <p style="font-size:19px;font-weight:700;">Finding destinations...</p>
+  </div>`;
+  banner.style.display = 'none';
+  showScreen('dream-results');
+
+  let destinations = [];
+  let perfectMatch = true;
+  let mismatchExplanation = null;
+  let usedFallback = false;
+
+  try {
+    const response = await fetch(N8N_DISCOVERY_WEBHOOK_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        budget: state.budget,
+        nights: getEffectiveNights(),
+        from: state.from,
+        travelMonth: state.datesKnown ? new Date(state.dep.y, state.dep.m, 1).toLocaleString('en-US',{month:'long'}) : state.approxMonth,
+        adults: state.adults,
+        children: state.children,
+        elders: state.elders,
+        interests: state.interests,
+        pace: state.prefs.pace,
+        notes: state.notes
+      })
+    });
+    if(!response.ok) throw new Error('Agent request failed: ' + response.status);
+    const data = await response.json();
+    // Observed response shape from the n8n workflow: an array containing the
+    // Supabase row, with the AI's output nested under .recommendations
+    const row = Array.isArray(data) ? data[0] : data;
+    const recs = (row && row.recommendations) ? row.recommendations : row;
+    destinations = (recs && recs.destinations) ? recs.destinations : [];
+    perfectMatch = recs ? recs.perfect_match !== false : true;
+    mismatchExplanation = (recs && recs.mismatch_explanation) || null;
+    if(!destinations.length) throw new Error('Agent returned no destinations');
+  } catch(e){
+    console.error('Discovery agent call failed, falling back to local matching:', e);
+    usedFallback = true;
+    const scored = DESTINATIONS.map(d=>{
+      const matchedTags = d.tags.filter(t=>state.interests.includes(t));
+      const withinBudget = d.cost <= state.budget;
+      return {...d, matchedTags, score: matchedTags.length*2 + (withinBudget?0.5:0)};
+    }).sort((a,b)=> b.score - a.score || a.cost - b.cost);
+    destinations = scored.slice(0,4).map(d=>({
+      trip_type: "single",
+      name: d.name, estimated_cost_per_person: d.cost, best_season: d.season,
+      typical_travel_time: d.travel,
+      stops: [{ city: d.name, nights: state.nights||5, top_attractions: d.attractions }],
+      nearby_day_trips: [],
+      match_rationale: d.matchedTags.length ? `Matches: ${d.matchedTags.join(', ')}.` : `Doesn't directly match your interests.`,
+      rank_reason: null,
+      constraints_relaxed: d.cost > state.budget ? `~₹${(d.cost-state.budget).toLocaleString()} over budget` : null
+    }));
+    perfectMatch = destinations.every(d=>!d.constraints_relaxed);
+    mismatchExplanation = null;
+  }
+
+  if(!perfectMatch){
+    heading.textContent = `Closest options`;
+    banner.style.display = 'flex';
+    document.getElementById('mismatchText').textContent = mismatchExplanation || `Based on what you selected, nothing matched perfectly. Showing the nearest fits.`;
+  } else {
+    heading.textContent = `${destinations.length} places that fit`;
+    banner.style.display = 'none';
+  }
+  if(usedFallback){
+    banner.style.display = 'flex';
+    document.getElementById('mismatchText').textContent = "Couldn't reach the AI agent right now — showing offline matches instead.";
+  }
+
+  list.innerHTML = '';
+  state.allDiscoveredDestinations = destinations;
+  state.revealedCount = 0;
+  revealNextBatch();
+  renderCompareBridge();
+  // showScreen('dream-results') ran near the top of this function, before this fetch
+  // resolved — that's when persistDraft() actually fired, so the saved draft never
+  // contained these results at all. Saving again now that they exist.
+  persistDraft();
+}
+
+function revealNextBatch(){
+  const list = document.getElementById('resultsList');
+  const all = state.allDiscoveredDestinations || [];
+  const batchSize = 5;
+  const nextSlice = all.slice(state.revealedCount, state.revealedCount + batchSize);
+  nextSlice.forEach(d=> appendDestinationCard(d, list));
+  state.revealedCount += nextSlice.length;
+  const moreBtn = document.getElementById('showMoreBtn');
+  if(moreBtn) moreBtn.style.display = (state.revealedCount < all.length) ? 'block' : 'none';
+  // Only meaningful once there's actually something to judge as "not quite
+  // right" — was showing during the loading state before, with nothing on
+  // screen yet for the traveler to be reacting to.
+  const adjustBtn = document.getElementById('adjustPrefsBtn');
+  if(adjustBtn) adjustBtn.style.display = state.revealedCount > 0 ? 'block' : 'none';
+}
+
+function updateCarouselDots(track){
+  const idx = Math.round(track.scrollLeft / track.clientWidth);
+  const dotsWrap = track.parentElement.querySelector('.img-carousel-dots');
+  if(!dotsWrap) return;
+  Array.from(dotsWrap.children).forEach((dot,i)=>dot.classList.toggle('active', i===idx));
+}
+function appendDestinationCard(d, list){
+  const cost = d.estimated_cost_per_person || 0;
+  const delta = cost - state.budget;
+  const budgetNote = delta<=0 ? `Under your ₹${state.budget.toLocaleString()} budget.` : `~₹${delta.toLocaleString()} over budget.`;
+  const safetyLine = state.user.gender==='female' ? `<div class="xsmall" style="color:var(--teal);font-weight:700;margin-top:4px;">🛡 We'll flag safety info once you compare properties</div>` : '';
+  const images = (d.image_urls && d.image_urls.length) ? d.image_urls : (d.image_url ? [d.image_url] : []);
+  const badgeHtml = images.length ? `
+    <div class="img-carousel">
+      <div class="img-carousel-track" onscroll="updateCarouselDots(this)">
+        ${images.map(url=>`<img src="${url}" loading="lazy" alt="${d.name.replace(/"/g,'')}">`).join('')}
+      </div>
+      ${images.length>1 ? `<div class="img-carousel-dots">${images.map((_,i)=>`<span class="dot${i===0?' active':''}"></span>`).join('')}</div>` : ''}
+    </div>`
+    : `<div class="card-badge" style="background:var(--grad-coral);"><div class="icon-circle">📍</div></div>`;
+  const stops = d.stops || [];
+  const isMultiCity = d.trip_type === 'multi_city' || stops.length > 1;
+  const stopsHtml = isMultiCity
+    ? stops.map(s=>`<div class="xsmall" style="margin:4px 0;"><b>${s.city}</b> — ${s.nights} night${s.nights===1?'':'s'}<br><span class="muted">${(s.top_attractions||[]).join(', ')}</span></div>`).join('')
+    : `<div style="margin:6px 0;">${((stops[0]&&stops[0].top_attractions)||[]).map(a=>`<span class="attr-chip">${a}</span>`).join('')}</div>`;
+  const dayTripsHtml = (d.nearby_day_trips && d.nearby_day_trips.length)
+    ? `<p class="xsmall muted" style="margin:4px 0 0;">🚗 Day trip option: ${d.nearby_day_trips.join(', ')}</p>` : '';
+  const card = document.createElement('div');
+  card.className = 'card';
+  const safeName = d.name.replace(/'/g,"");
+  const alreadyCompared = state.compareList.includes(safeName);
+  card.innerHTML = `
+    ${badgeHtml}
+    <div class="card-body">
+      <div class="row-between"><b>${d.name}</b><span class="xsmall muted">~₹${cost.toLocaleString()}/person</span></div>
+      <div class="xsmall muted" style="margin:5px 0;">📅 ${d.best_season||'—'} &nbsp; 🕒 ${d.typical_travel_time||'—'}${isMultiCity?' &nbsp; 🗺 Multi-city route':''}</div>
+      ${stopsHtml}
+      ${dayTripsHtml}
+      <div class="insight-box">✨ ${d.match_rationale||''} ${budgetNote}</div>
+      ${safetyLine}
+      <div style="display:flex;gap:8px;">
+        <button class="btn-primary" style="height:36px;font-size:12.5px;" onclick="chooseDestination('${safeName}')">Plan this trip</button>
+        <button class="btn-secondary compare-toggle-btn${alreadyCompared?' active':''}" data-compare-name="${safeName}" style="width:auto;padding:0 12px;height:36px;font-size:11.5px;white-space:nowrap;" onclick="toggleCompareFromCard('${safeName}', this)">${alreadyCompared?'✓ Added':'+ Compare'}</button>
+      </div>
+    </div>`;
+  list.appendChild(card);
+}
+function toggleCompareFromCard(name, btn){
+  const alreadyIn = state.compareList.includes(name);
+  if(alreadyIn){
+    state.compareList = state.compareList.filter(n=>n!==name);
+    delete state.compareDataCache[name.toLowerCase()];
+    btn.classList.remove('active');
+    btn.textContent = '+ Compare';
+    toast(`Removed ${name} from compare`);
+  } else {
+    if(state.compareList.length>=5){ toast('Maximum 5 destinations — remove one first'); return; }
+    state.compareList.push(name);
+    ensureCompareData(name);
+    btn.classList.add('active');
+    btn.textContent = '✓ Added';
+    toast(`Added ${name} to compare`);
+  }
+  renderCompareBridge();
+}
+function syncCompareToggleButtons(){
+  document.querySelectorAll('.compare-toggle-btn').forEach(btn=>{
+    const name = btn.getAttribute('data-compare-name');
+    const isIn = state.compareList.includes(name);
+    btn.classList.toggle('active', isIn);
+    btn.textContent = isIn ? '✓ Added' : '+ Compare';
+  });
+}
+
+function showMoreDestinations(btn){
+  revealNextBatch();
+  renderCompareBridge();
+}
+function renderCompareBridge(){
+  let bar = document.getElementById('compareBridgeBar');
+  if(!bar){
+    bar = document.createElement('div');
+    bar.id = 'compareBridgeBar';
+    bar.style.cssText = 'position:sticky;bottom:8px;margin-top:8px;';
+    document.getElementById('resultsList').insertAdjacentElement('afterend', bar);
+  }
+  if(state.compareList.length===0){ bar.innerHTML = ''; return; }
+  bar.innerHTML = `<button class="btn-primary" style="height:42px;" onclick="showScreen('dream-compare')">🔀 ${state.compareList.length} added — View comparison →</button>`;
+}
+function chooseDestination(name){
+  // Remember which screen this was picked from (results, compare, validate, etc.) —
+  // "back" from preferences needs to return here, not to a single hardcoded screen.
+  // Must be read before showScreen() changes what's active.
+  const activeScreenEl = document.querySelector('.screen.active');
+  state.cameFromScreen = (activeScreenEl && activeScreenEl.dataset.screen) || 'dream-universal';
+  state.chosenDestination = name;
+  // If this destination came from a Discovery result with a multi-city route,
+  // keep its stop-by-stop breakdown (city + nights + attractions per stop) so
+  // the itinerary can actually plan city-to-city, not treat the whole route
+  // as one made-up place. Anything chosen via Compare/Validate, or a
+  // single-destination Discovery result, has no multi-stop breakdown — that's
+  // expected, and the itinerary builder treats it as a normal single-city trip.
+  const match = (state.allDiscoveredDestinations||[]).find(d=>d.name===name);
+  // A destination chosen via Compare/Validate isn't in allDiscoveredDestinations at all —
+  // it lives in compareDataCache instead (already normalized to .cost there — see
+  // normalizeDiscoveryEntry/fetchCompareEnrichment). Check both so the estimate is
+  // captured regardless of which screen the traveler actually picked from.
+  const compareMatch = state.compareDataCache && state.compareDataCache[name.toLowerCase()];
+  // match.cost is Discovery's estimated_cost_per_person, sitting right here in memory —
+  // capture it now or it's gone; nothing downstream (itinerary request, state) was
+  // carrying it forward before this.
+  // Real Discovery agent responses carry this as estimated_cost_per_person (checked
+  // directly against what state.allDiscoveredDestinations actually stores — it's the
+  // raw agent response, never normalized). match.cost only ever existed in the offline
+  // fallback path used when the Discovery call itself fails. compareMatch.cost is
+  // already normalized upstream, so it's read as-is.
+  const capturedCost = (match && typeof match.estimated_cost_per_person === 'number') ? match.estimated_cost_per_person
+    : (match && typeof match.cost === 'number') ? match.cost
+    : (compareMatch && typeof compareMatch.cost === 'number') ? compareMatch.cost : null;
+  state.destinationCostPerPerson = capturedCost;
+  state.chosenStops = (match && Array.isArray(match.stops) && match.stops.length>1) ? match.stops : null;
+  // Discovery may have shown a same-day trip (e.g. "Day trip option: Araku Valley")
+  // as part of why this destination was recommended. That's a real expectation the
+  // traveler was shown, not decoration — carry it forward so the itinerary agent
+  // actually has a chance to include it, instead of it silently disappearing between
+  // screens the way it was before.
+  state.chosenDayTrips = (match && Array.isArray(match.nearby_day_trips)) ? match.nearby_day_trips : [];
+  // Same principle for the attraction chips shown on the destination card itself
+  // (RK Beach, Rushikonda Beach, Kailasagiri, etc.) — those are what actually sold
+  // the traveler on this place. For a genuine multi-city route this data already
+  // travels with chosenStops (each stop carries its own top_attractions); this only
+  // needs to be captured separately for the single-city case, where chosenStops is
+  // deliberately null and this would otherwise never reach the itinerary agent.
+  state.chosenTopAttractions = (!state.chosenStops && match && Array.isArray(match.stops) && match.stops[0]) ? (match.stops[0].top_attractions || []) : [];
+  showScreen('plan-preferences');
+}
+function addToCompareList(name){
+  if(!state.compareList.includes(name) && state.compareList.length<5) state.compareList.push(name);
+  ensureCompareData(name);
+  persistDraft();
+}
+function ensureCompareData(name){
+  const key = name.toLowerCase();
+  if(state.compareDataCache[key] && !state.compareDataCache[key].loading) return;
+  const fromDiscovery = (state.allDiscoveredDestinations||[]).find(d=>d.name.toLowerCase()===key || d.name.toLowerCase().includes(key));
+  if(fromDiscovery){
+    state.compareDataCache[key] = normalizeDiscoveryEntry(fromDiscovery);
+    return;
+  }
+  if(!state.compareDataCache[key]){
+    state.compareDataCache[key] = { name, loading: true };
+    fetchCompareEnrichment(name, key);
+  }
+}
+
+/* ---------- COMPARE ---------- */
+function isInternational(name){
+  const lower = name.toLowerCase();
+  return INTERNATIONAL_KEYWORDS.some(k=>lower.includes(k));
+}
+function renderCompare(){
+  const chipsWrap = document.getElementById('compareChips');
+  chipsWrap.innerHTML = '';
+  state.compareList.forEach(name=>{
+    const chip = document.createElement('span');
+    chip.className = 'chip';
+    chip.innerHTML = `${name} <span style="cursor:pointer;" onclick="removeCompare('${name}')">✕</span>`;
+    chipsWrap.appendChild(chip);
+  });
+  const tableWrap = document.getElementById('compareTableWrap');
+  const emptyMsg = document.getElementById('compareEmpty');
+  const note = document.getElementById('compareNote');
+
+  if(state.compareList.length===0){
+    tableWrap.style.display='none'; emptyMsg.style.display='block'; note.textContent='';
+    return;
+  }
+  emptyMsg.style.display='none'; tableWrap.style.display='block';
+
+  const rows = state.compareList.map(name=> state.compareDataCache[name.toLowerCase()] || {name, loading:true});
+
+  let bestKey = null, bestScore = -1;
+  rows.forEach(r=>{
+    if(r.unavailable || r.loading) return;
+    const withinBudget = (state.budget && r.cost) ? r.cost <= state.budget : true;
+    const rankBonus = (state.allDiscoveredDestinations||[]).findIndex(d=>d.name===r.name);
+    const score = (withinBudget?2:0) + (rankBonus>=0 ? (5-rankBonus) : 0);
+    if(score > bestScore){ bestScore = score; bestKey = r.name; }
+  });
+
+  const hl = (r) => r.name===bestKey ? 'background:var(--teal-light);' : '';
+  let html = '<table><tr><td></td>' + rows.map(r=>`<td style="${hl(r)}">${r.image_url?`<img src="${r.image_url}" class="compare-thumb" style="width:36px;height:36px;object-fit:cover;border-radius:8px;" onclick="openLightbox('${r.image_url.replace(/'/g,"\\'")}','${r.name.replace(/'/g,"\\'")}')">`:'<span style="font-size:16px;">📍</span>'}<br><b>${r.name}</b></td>`).join('') + '</tr>';
+  const metric = (label, fn) => '<tr><td class="muted">'+label+'</td>' + rows.map(r=>{
+    if(r.loading) return `<td style="${hl(r)}"><span class="muted">Checking...</span></td>`;
+    if(r.unavailable) return `<td style="${hl(r)}"><span class="muted">${r.notReal?"couldn't confirm this place":'unavailable'}</span></td>`;
+    return `<td style="${hl(r)}">${fn(r)}</td>`;
+  }).join('') + '</tr>';
+  html += metric('Budget', r=> r.cost ? `~₹${r.cost.toLocaleString()}/person` : '—');
+  html += metric('Best season', r=> r.season || '—');
+  html += metric('Travel time', r=> r.travel || '—');
+  html += metric('Top attractions', r=> (r.attractions||[]).slice(0,2).join(', ') || '—');
+  html += metric('Notes', r=> r.notes || '—');
+  html += '<tr><td></td>' + rows.map(r=>`<td style="${hl(r)}">${(r.unavailable||r.loading)?'':`<button class="btn-mini" style="width:100%;padding:6px 4px;" onclick="chooseDestination('${r.name.replace(/'/g,"")}')">Plan this</button>`}</td>`).join('') + '</tr>';
+  html += '</table>';
+  tableWrap.innerHTML = html;
+
+  const best = rows.find(r=>r.name===bestKey);
+  note.textContent = best ? `✨ ${best.name} best fits your budget${bestScore>=3?' and interests':''} — highlighted above. Tap "Plan this" under any column to proceed.` : `Still gathering data on these destinations.`;
+}
+function normalizeDiscoveryEntry(d){
+  const isMultiCity = d.trip_type === 'multi_city' || (d.stops && d.stops.length > 1);
+  const attractions = isMultiCity
+    ? (d.stops||[]).flatMap(s=>s.top_attractions||[]).slice(0,3)
+    : ((d.stops&&d.stops[0]&&d.stops[0].top_attractions)||[]);
+  return {
+    name: d.name, cost: d.estimated_cost_per_person, season: d.best_season,
+    travel: d.typical_travel_time, attractions, image_url: (d.image_urls&&d.image_urls[0])||d.image_url||null,
+    notes: d.match_rationale, recognized: true, unavailable: false, loading: false
+  };
+}
+
+async function addCompareDestination(){
+  const input = document.getElementById('compareInput');
+  const val = input.value.trim();
+  const errEl = document.getElementById('compareError');
+  if(!val) return;
+  if(isInternational(val)){
+    errEl.style.display = 'block';
+    errEl.textContent = `"${val}" looks international — Saathi currently only supports domestic (India) trips, so it wasn't added.`;
+    input.value = '';
+    return;
+  }
+  errEl.style.display = 'none';
+  if(state.compareList.length>=5){ toast('Maximum 5 destinations'); return; }
+
+  state.compareList.push(val);
+  input.value='';
+  ensureCompareData(val);
+  renderCompare();
+  persistDraft();
+}
+
+async function fetchCompareEnrichment(name, key){
+  try {
+    const response = await fetch(N8N_ENRICHMENT_WEBHOOK_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        destinationName: name, from: state.from, budget: state.budget,
+        travelMonth: state.datesKnown ? new Date(state.dep.y, state.dep.m, 1).toLocaleString('en-US',{month:'long'}) : state.approxMonth
+      })
+    });
+    if(!response.ok) throw new Error('Enrichment request failed');
+    const data = await response.json();
+    const row = Array.isArray(data) ? data[0] : data;
+    const rec = (row && row.recommendations) ? row.recommendations : row;
+    if(!rec || rec.recognized === false){
+      state.compareDataCache[key] = { name, unavailable: true, loading: false, notReal: true };
+    } else {
+      state.compareDataCache[key] = {
+        name: rec.name || name, cost: rec.estimated_cost_per_person, season: rec.best_season,
+        travel: rec.typical_travel_time, attractions: rec.top_attractions||[], image_url: (rec.image_urls&&rec.image_urls[0])||null,
+        notes: rec.season_fit_note, recognized: true, unavailable: false, loading: false
+      };
+    }
+  } catch(e){
+    console.error('Enrichment fetch failed:', e);
+    state.compareDataCache[key] = { name, unavailable: true, loading: false };
+  }
+  renderCompare();
+  persistDraft();
+}
+function openLightbox(url, name){
+  closeLightbox();
+  const overlay = document.createElement('div');
+  overlay.className = 'lightbox-overlay';
+  overlay.id = 'imgLightbox';
+  overlay.onclick = closeLightbox;
+  overlay.innerHTML = `
+    <span class="lightbox-close" onclick="closeLightbox()">✕</span>
+    <img src="${url}" alt="${name.replace(/"/g,'')}">
+    <div class="lightbox-caption">${name}</div>`;
+  document.body.appendChild(overlay);
+  document.addEventListener('keydown', lightboxEscHandler);
+}
+function closeLightbox(){
+  const overlay = document.getElementById('imgLightbox');
+  if(overlay) overlay.remove();
+  document.removeEventListener('keydown', lightboxEscHandler);
+}
+function lightboxEscHandler(e){
+  if(e.key === 'Escape') closeLightbox();
+}
+function removeCompare(name){
+  state.compareList = state.compareList.filter(n=>n!==name);
+  delete state.compareDataCache[name.toLowerCase()];
+  syncCompareToggleButtons();
+  renderCompareBridge();
+  renderCompare();
+  persistDraft();
+}
+
+/* ---------- VALIDATE ---------- */
+async function runValidation(){
+  const val = document.getElementById('validateInput').value.trim();
+  if(!val) return;
+  const esc = s => (s==null ? '' : String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])));
+  const resultEl = document.getElementById('validateResult');
+  if(isInternational(val)){
+    resultEl.innerHTML = `
+      <div class="warn-box">
+        <span>🌏</span>
+        <div>
+          <div style="font-weight:700;font-size:13px;">Domestic trips only</div>
+          <div class="small muted">"${val}" looks like an international destination. Saathi currently only supports trips within India.</div>
+        </div>
+      </div>
+      <button class="btn-ghost" onclick="showScreen('dream-universal')">Try a different destination</button>`;
+    return;
+  }
+  const d = DESTINATIONS.find(x=>x.name.toLowerCase()===val.toLowerCase());
+  if(d){
+    resultEl.innerHTML = `
+      <div class="card-badge" style="height:100px;border-radius:16px;background:var(--grad-teal);margin-bottom:12px;"><div class="icon-circle">✅</div></div>
+      <div style="text-align:center;margin-bottom:14px;">
+        <p style="font-size:17px;font-weight:700;margin:0 0 4px;">${d.name}</p>
+        <span class="status-pill status-good">✓ Good fit for your trip</span>
+      </div>
+      <div class="card" style="padding:13px;margin-bottom:18px;box-shadow:none;">
+        <table>
+          <tr><td class="muted">Best season</td><td style="text-align:right;">${d.season}</td></tr>
+          <tr><td class="muted">Estimated budget</td><td style="text-align:right;">~₹${d.cost.toLocaleString()}/person</td></tr>
+          <tr><td class="muted">Travel time</td><td style="text-align:right;">${d.travel}</td></tr>
+          <tr><td class="muted">Crowd level</td><td style="text-align:right;">${d.crowd}</td></tr>
+        </table>
+      </div>
+      <button class="btn-primary" onclick="chooseDestination('${d.name}')">Proceed to planning ↗</button>`;
+    return;
+  }
+  // Not in the small local sample list — that list only covers a handful of
+  // destinations, it was never meant to be the real check. Before assuming the
+  // place doesn't exist, actually geocode it against real map data (the same
+  // Nominatim service the backend already relies on for place verification) —
+  // most real Indian cities/towns aren't in the tiny local list, but they're
+  // genuinely real places that should proceed normally.
+  resultEl.innerHTML = `<p class="small muted" style="text-align:center;padding:24px 0;">🔎 Checking "${esc(val)}"...</p>`;
+  let geocoded = null;
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(val + ', India')}&format=json&limit=1`);
+    const json = await res.json();
+    if (Array.isArray(json) && json.length) geocoded = json[0];
+  } catch(e) {
+    console.error('Destination geocode check failed:', e);
+  }
+  if(geocoded){
+    resultEl.innerHTML = `
+      <div class="card-badge" style="height:100px;border-radius:16px;background:var(--grad-teal);margin-bottom:12px;"><div class="icon-circle">✅</div></div>
+      <div style="text-align:center;margin-bottom:14px;">
+        <p style="font-size:17px;font-weight:700;margin:0 0 4px;">${esc(val)}</p>
+        <span class="status-pill status-good">✓ Confirmed real place</span>
+      </div>
+      <div class="card" style="padding:13px;margin-bottom:18px;box-shadow:none;">
+        <p class="xsmall muted" style="margin:0;">Let's build your full trip plan.</p>
+      </div>
+      <button class="btn-primary" onclick="chooseDestination('${esc(val)}')">Proceed to planning ↗</button>`;
+  } else {
+    resultEl.innerHTML = `
+      <div class="warn-box">
+        <span>⚠️</span>
+        <div>
+          <div style="font-weight:700;font-size:13px;">We couldn't confirm "${esc(val)}" as a real place</div>
+          <div class="small muted">Double-check the spelling, or continue anyway if you're confident it's correct.</div>
+        </div>
+      </div>
+      <button class="btn-secondary" style="margin-bottom:8px;" onclick="chooseDestination('${esc(val)}')">Continue anyway</button>
+      <button class="btn-ghost" onclick="showScreen('dream-universal')">Try a different destination</button>`;
+  }
+}
+
+/* ---------- PLAN: PREFERENCES ---------- */
+function selectPref(key, value){
+  state.prefs[key] = value;
+  document.querySelectorAll(`[id^="${key}-"]`).forEach(b=>b.classList.remove('active'));
+  document.getElementById(`${key}-${value}`).classList.add('active');
+}
+function setPlanDestName(){
+  const nameEl = document.getElementById('planDestName');
+  if(nameEl) nameEl.textContent = state.chosenDestination || 'your trip';
+  ['relaxed','balanced','packed'].forEach(p=>document.getElementById('pace-'+p).classList.toggle('active', state.prefs.pace===p));
+  ['budget','midrange','luxury'].forEach(s=>document.getElementById('stay-'+s).classList.toggle('active', state.prefs.stay===s));
+  ['agent','car','bike'].forEach(t=>document.getElementById('ownTransport-'+t).classList.toggle('active', state.prefs.ownTransport===t));
+}
+
+/* ---------- ITINERARY: RUNNING CLOCK TIMELINE ---------- */
+function fmtTime(mins){
+  let h = Math.floor(mins/60)%24, m = mins%60;
+  const ampm = h>=12?'PM':'AM';
+  let h12 = h%12; if(h12===0) h12=12;
+  return `${h12}:${m.toString().padStart(2,'0')} ${ampm}`;
+}
+// Parses a 24h "HH:MM" string (as expected from the itinerary agent's real
+// transport data) into minutes-since-midnight. Returns null if malformed —
+// callers should fall back to the synthetic schedule in that case.
+// Parses a duration string like "2h" / "1.5h" / "7h" into minutes, so the day's
+// clock actually advances by how long an activity really takes — not a fixed
+// guess. Clamped to a sane max (10h) so one bad value can't blow up a whole day.
+// Guarantees the specific place is always visible in the title text itself — never
+// depends on the AI actually following the "put it in name, not just place_name"
+// instruction. If the AI already did it right, this is a no-op (detects the overlap
+// and doesn't duplicate). If the AI split them (name: "Beach relaxation", place_name:
+// "RK Beach"), this combines them so the traveler sees "Beach relaxation — RK Beach"
+// without ever needing to tap navigate to find out where they're actually going.
+function withPlace(name, place){
+  if(!place) return name;
+  const n = name.toLowerCase(), p = place.toLowerCase();
+  if(n.includes(p) || p.includes(n)) return name; // already specific, avoid "X — X" duplication
+  return `${name} — ${place}`;
+}
+function parseDurationToMinutes(durStr, fallbackMinutes){
+  if(typeof durStr !== 'string') return fallbackMinutes;
+  const m = durStr.match(/^([\d.]+)\s*h$/i);
+  if(!m) return fallbackMinutes;
+  const hours = parseFloat(m[1]);
+  if(!isFinite(hours) || hours<=0) return fallbackMinutes;
+  return Math.round(Math.min(hours, 10) * 60);
+}
+function parseHM(str){
+  if(typeof str !== 'string') return null;
+  const m = str.match(/^(\d{1,2}):(\d{2})$/);
+  if(!m) return null;
+  const h = Number(m[1]), min = Number(m[2]);
+  if(h<0 || h>23 || min<0 || min>59) return null;
+  return h*60+min;
+}
+
+const MEALS = {
+  breakfast:{name:"Neer dosa & filter coffee — breakfast", dur:60},
+  lunch:{name:"Local thali — street food lunch", dur:60},
+  dinner:{name:"Regional specialty dinner", dur:75}
+};
+
+// Single source of truth for trip length. state.nights is only ever set by the exact-dates
+// calendar flow — if the traveler used the "approximate month" flow instead (or picked dates
+// that no longer match what they originally said), state.nights can silently go stale. This
+// always recomputes from whichever input is actually authoritative right now.
+function getEffectiveNights(){
+  if(state.datesKnown){
+    const depDate = new Date(state.dep.y, state.dep.m, state.dep.d);
+    const retDate = new Date(state.ret.y, state.ret.m, state.ret.d);
+    const n = Math.round((retDate-depDate)/86400000);
+    if(n>0) return n;
+  }
+  return state.expectedNights || 5;
+}
+function toISODate(dateObj){
+  const pad = n => String(n).padStart(2,'0');
+  return `${dateObj.y}-${pad(dateObj.m+1)}-${pad(dateObj.d)}`;
+}
+
+// Shared by both the initial build and the edit box below. For the SAME
+// destination, any regeneration — whether triggered by free text or by changing a
+// structured preference like stay style — is treated as an UPDATE to the existing
+// itinerary, not a fresh rebuild that forgets what was already established. Only a
+// genuinely different destination starts clean.
+async function fetchItineraryFromAgent(extraNote){
+  state.nights = getEffectiveNights();
+  const nights = state.nights;
+  const selfDriven = state.prefs.ownTransport && state.prefs.ownTransport !== 'agent';
+  const transportMode = selfDriven ? state.prefs.ownTransport : decideTransportMode(nights, state.budget, state.prefs.stay);
+  const baseNotes = state.prefs.notes || state.notes || '';
+  const isSameTrip = state.lastKnownItinerary && state.editHistoryDestination === state.chosenDestination;
+
+  // Every free-text edit request accumulates here permanently — a standing
+  // constraint ("always make it late-night trains") that must survive every later
+  // regeneration for this same trip, not just the one call it was typed for.
+  if(!Array.isArray(state.editHistory)) state.editHistory = [];
+  if(extraNote) state.editHistory.push(extraNote);
+
+  // Structured preference fields (stay/food/pace/transport) already go into the
+  // payload as their own fields below, so the agent always sees the CURRENT value —
+  // but on their own that doesn't tell it what CHANGED versus the itinerary it's
+  // about to be handed as context. Naming the change explicitly is more reliable
+  // than expecting the model to diff two JSON blobs and notice on its own.
+  let preferenceChangeNote = '';
+  if(isSameTrip && state.lastGeneratedPrefs){
+    const changes = [];
+    const prev = state.lastGeneratedPrefs;
+    if(prev.stay !== state.prefs.stay) changes.push(`stay preference changed from "${prev.stay}" to "${state.prefs.stay}"`);
+    if(prev.pace !== state.prefs.pace) changes.push(`pace changed from "${prev.pace}" to "${state.prefs.pace}"`);
+    if(prev.ownTransport !== state.prefs.ownTransport) changes.push(`transport preference changed from "${prev.ownTransport}" to "${state.prefs.ownTransport}"`);
+    if(JSON.stringify(prev.food) !== JSON.stringify(state.prefs.food)) changes.push(`food preference changed to ${JSON.stringify(state.prefs.food)}`);
+    if(changes.length) preferenceChangeNote = `The traveler just updated this trip: ${changes.join('; ')}. Update the itinerary to reflect this change, preserving everything else from the existing itinerary that isn't affected by it.`;
+  }
+
+  const notes = [baseNotes, ...state.editHistory, preferenceChangeNote].filter(Boolean).join('. ');
+
+  // Send the current itinerary back as context whenever this is the same trip —
+  // not only for free-text edits — so the agent EDITS what exists rather than
+  // independently rebuilding from scratch and losing standing preferences that
+  // were only ever expressed as a past edit (like "always late-night trains").
+  // "verified"/"hotel_verified" are system-added tags, never produced by the model
+  // itself, so they're stripped before being handed back as context.
+  let currentItinerary = null;
+  if(isSameTrip){
+    currentItinerary = JSON.parse(JSON.stringify(state.lastKnownItinerary));
+    const stripTags = obj => {
+      delete obj.hotel_verified;
+      if(Array.isArray(obj.days)) obj.days.forEach(d => Array.isArray(d.items) && d.items.forEach(it => delete it.verified));
+    };
+    stripTags(currentItinerary);
+    if(Array.isArray(currentItinerary.stops)) currentItinerary.stops.forEach(stripTags);
+  }
+
+  const response = await fetch(N8N_ITINERARY_WEBHOOK_URL, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      destination: state.chosenDestination,
+      budget: state.budget,
+      nights: nights,
+      from: state.from,
+      travelMonth: state.datesKnown ? new Date(state.dep.y, state.dep.m, 1).toLocaleString('en-US',{month:'long'}) : state.approxMonth,
+      adults: state.adults, children: state.children, elders: state.elders,
+      interests: state.interests,
+      pace: state.prefs.pace,
+      stay: state.prefs.stay,
+      food: state.prefs.food,
+      notes: notes,
+      stops: state.chosenStops,
+      // Same-day trips Discovery already showed the traveler as a reason to pick this
+      // destination (e.g. "Araku Valley" for Vizag) — not mandatory to include, but a
+      // real expectation that was set, not a constraint the agent should never see.
+      dayTripOptions: state.chosenDayTrips || [],
+      // Attraction chips shown on the destination card during discovery (RK Beach,
+      // Rushikonda Beach, Kailasagiri, etc.) — same "expectation already set" principle
+      // as dayTripOptions. Only populated for single-city trips; multi-city routes
+      // already carry the equivalent per-stop via "stops".
+      topAttractions: state.chosenTopAttractions || [],
+      currentItinerary: currentItinerary,
+      editRequest: extraNote || null,
+      ownTransport: state.prefs.ownTransport,
+      transportMode: transportMode,
+      departDate: state.datesKnown ? toISODate(state.dep) : null,
+      returnDate: state.datesKnown ? toISODate(state.ret) : null
+    })
+  });
+  if(!response.ok) throw new Error('Itinerary agent request failed: ' + response.status);
+  const data = await response.json();
+  const row = Array.isArray(data) ? data[0] : data;
+  const recs = (row && row.recommendations) ? row.recommendations : row;
+  const hasDays = recs && Array.isArray(recs.days) && recs.days.length > 0;
+  const hasStops = recs && Array.isArray(recs.stops) && recs.stops.length > 0;
+  if(!recs || !(hasDays || hasStops)){
+    throw new Error('Itinerary agent returned no days/stops');
+  }
+  return { agentData: recs, selfDriven, transportMode, nights };
+}
+
+// Best-effort classification of why the agent call failed — not a guarantee of the
+// real cause (we only see what reaches the browser), but "the AI model is likely
+// overloaded, this is usually temporary" is a meaningfully different, more accurate
+// message than a generic connectivity failure, when the symptoms match.
+function classifyAgentFailure(e){
+  const msg = (e && e.message) || '';
+  if(msg.includes('Unexpected end of JSON input') || msg.includes('no days/stops')){
+    return `The AI model behind the itinerary agent seems to be overloaded right now — this is usually temporary. Try again in a minute.`;
+  }
+  return `Couldn't reach the itinerary agent — nothing honest to show right now. Try again in a moment.`;
+}
+
+async function runItineraryAgent(){
+  // Only wipe edit history for a genuinely NEW destination — "I always want late
+  // night trains" was an explicit standing preference, and clicking "Build my
+  // itinerary" again after just tweaking stay style on the SAME destination isn't a
+  // new trip, it's a refinement of this one. Resetting on every call (regardless of
+  // destination) silently discarded edits the traveler never asked to undo.
+  if(state.editHistoryDestination !== state.chosenDestination){
+    state.editHistory = [];
+    state.editHistoryDestination = state.chosenDestination;
+    state.lastKnownItinerary = null;
+  }
+  // Clear the previous itinerary BEFORE navigating — showScreen('plan-itinerary')
+  // triggers an automatic renderItinerary() as part of switching screens, and if the
+  // old itinerary (a different destination, from a previous generation) is still
+  // sitting in state at that moment, it flashes/stays on screen while this fetch is
+  // still in flight. If the fetch then fails, nothing ever replaces it, and the
+  // traveler silently keeps looking at the wrong trip with no error shown at all.
+  // renderItinerary() safely no-ops when state.itinerary is null, so this is a clean
+  // "nothing to show yet" state rather than stale content.
+  const previousItinerary = state.itinerary;
+  state.itinerary = null;
+  document.getElementById('itinDestName').textContent = 'Your trip';
+  document.getElementById('itinLoading').style.display = 'block';
+  document.getElementById('itinContent').style.display = 'none';
+  document.getElementById('itineraryFallbackNote').style.display = 'none';
+  document.getElementById('feasibilityWarning').style.display = 'none';
+  document.getElementById('budgetWarning').style.display = 'none';
+  document.getElementById('transportModeNote').style.display = 'none';
+  showScreen('plan-itinerary');
+
+  let result = null;
+  let lastError = null;
+  try {
+    result = await fetchItineraryFromAgent(null);
+  } catch(e){
+    console.error('Itinerary agent call failed:', e);
+    lastError = e;
+  }
+
+  if(!result){
+    // itinContent was hidden above, and the fallback note lives INSIDE itinContent —
+    // without re-showing itinContent here, the fallback note would be invisible
+    // (display:flex on a child does nothing while its parent is display:none). This
+    // was a separate, real bug: on failure, neither an error nor the old itinerary
+    // was actually visible — just an empty area once the loading spinner vanished.
+    document.getElementById('itinContent').style.display = 'block';
+    document.getElementById('itineraryFallbackNote').querySelector('.small').textContent = classifyAgentFailure(lastError);
+    document.getElementById('itineraryFallbackNote').style.display = 'flex';
+    document.getElementById('itinLoading').style.display = 'none';
+    // Deliberately NOT restoring previousItinerary — showing the wrong destination's
+    // trip with no indication anything failed is worse than an honest empty state.
+    return;
+  }
+
+  applyAgentResultWarnings(result);
+  state.itinerary = result.agentData;
+  // Same reasoning as the initial generation — attach it here too, or a regeneration
+  // silently drops the destination again.
+  state.itinerary.destination = { name: state.chosenDestination };
+  persistTripState();
+  state.currentDay = 0;
+  state.editHistoryDestination = state.chosenDestination;
+  state.lastGeneratedPrefs = { stay: state.prefs.stay, pace: state.prefs.pace, ownTransport: state.prefs.ownTransport, food: [...(state.prefs.food||[])] };
+  state.lastKnownItinerary = result.agentData; // never cleared for display purposes — always holds the last successful generation for edit/update context
+  renderItinerary();
+}
+
+// Self-driven feasibility warning and transport-mode override note — agent-assessed,
+// not computed locally (see GETTING THERE in the prompt: the app has no real
+// distance/route data of its own to judge either of these).
+function applyAgentResultWarnings(result){
+  const { agentData, selfDriven, transportMode, nights } = result;
+  if(selfDriven && agentData.feasibility && typeof agentData.feasibility.feasible === 'boolean' && agentData.feasibility.feasible === false){
+    document.getElementById('feasibilityWarning').style.display = 'flex';
+    document.getElementById('feasibilityWarningText').textContent = agentData.feasibility.note || `This trip may be difficult to complete by ${state.prefs.ownTransport} in ${nights} days — double-check the distance before committing.`;
+  }
+  // Budget feasibility applies regardless of transport mode — unlike self-driven
+  // feasibility (a distance/time question), this is "does the stated budget realistically
+  // cover transport + hotel + food + activities together" (see BUDGET in the prompt).
+  if(agentData.budget_feasibility && typeof agentData.budget_feasibility.feasible === 'boolean' && agentData.budget_feasibility.feasible === false){
+    document.getElementById('budgetWarning').style.display = 'flex';
+    document.getElementById('budgetWarningText').textContent = agentData.budget_feasibility.note || `This trip may be tight for the stated budget of ₹${state.budget?.toLocaleString?.() || state.budget} per person — transport alone may take up most of it.`;
+  }
+  if(!selfDriven && typeof agentData.recommended_transport_mode === 'string' && ['flight','train','bus'].includes(agentData.recommended_transport_mode) && agentData.recommended_transport_mode !== transportMode){
+    document.getElementById('transportModeNote').style.display = 'flex';
+    document.getElementById('transportModeNoteText').textContent = (typeof agentData.transport_mode_reason === 'string' && agentData.transport_mode_reason)
+      ? agentData.transport_mode_reason
+      : `Suggested ${agentData.recommended_transport_mode} instead, based on the distance and days available.`;
+  }
+}
+
+// Renders the agent's itinerary directly — no client-side reconstruction of times,
+// transfers, or costs. What the agent returns is what's shown, in the order it gave it.
+function renderItinerary(){
+  const it = state.itinerary;
+  if(!it) return;
+  document.getElementById('itinLoading').style.display = 'none';
+  document.getElementById('itinContent').style.display = 'block';
+  try{
+    renderItineraryInner(it);
+  } catch(e){
+    // A rendering bug here must never leave the person stuck looking at whatever was
+    // on screen before — fail into an honest message instead of doing nothing visible.
+    console.error('renderItinerary failed:', e);
+    document.getElementById('dayTabs').innerHTML = '';
+    document.getElementById('dayContent').innerHTML = '<p class="small muted" style="padding:16px 0;text-align:center;">Couldn\'t display your itinerary right now — nothing was lost, try going back and returning to this screen.</p>';
+  }
+}
+function renderItineraryInner(it){
+
+  document.getElementById('itinDestName').textContent = it.trip_title || state.chosenDestination || 'Your trip';
+
+  const hasStopsArray = Array.isArray(it.stops) && it.stops.length > 0;
+  // Single-city trips are treated as one implicit stop, so the rest of this function
+  // doesn't need two separate code paths for "one hotel" vs "one hotel per stop."
+  const stopsList = hasStopsArray ? it.stops : [{ city: state.chosenDestination, hotel_suggestion: it.hotel_suggestion, hotel_reason: it.hotel_reason, hotel_verified: it.hotel_verified, days: it.days }];
+
+  // Flatten into one ordered day list for tabbing, each remembering which stop it came from.
+  // items is copied into a new array (not just the day object) — the midnight-crossing
+  // logic below uses .splice() on it, and without this copy, that mutated the actual
+  // state.itinerary data in place. That made renderItinerary() unsafe to call more than
+  // once: a second call (e.g. from clicking a different tab) would re-run the split
+  // logic on already-modified data and could produce a different result the second time.
+  const flatDays = [];
+  stopsList.forEach(stop => {
+    (stop.days || []).forEach(day => flatDays.push({ ...day, items: [...(day.items || [])], city: stop.city, hotel: stop.hotel_suggestion, hotelReason: stop.hotel_reason, hotelVerified: stop.hotel_verified }));
+  });
+
+  // Whether to show the city name on tabs is based on how many DISTINCT cities
+  // actually appear across the whole trip — not just whether the agent happened to
+  // wrap things in a "stops" array. The agent has wrapped a genuinely single-city trip
+  // in a one-entry stops array before (a real prompt-compliance slip); checking the
+  // actual flattened data instead of trusting the structure the model chose means
+  // "Visakhapatnam" repeating on every tab can't happen regardless of how the model
+  // shapes its response.
+  const isMultiCity = new Set(flatDays.map(d => d.city)).size > 1;
+
+  // Real calendar dates, computed client-side — flatDays' array index already reflects
+  // the true trip-wide day order across every stop (day_number resets per stop in a
+  // multi-city trip, so it can't be used for date math directly; the flat index can).
+  // Computed here rather than asked of the agent, since simple date arithmetic has no
+  // business being something a model could get wrong.
+  const fmtDateLabel = (dateObj) => dateObj.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' });
+  // A day's own items can cross midnight — an overnight train boarded at 9:30 PM that
+  // arrives at 9:00 AM is still "Day 1," but that 9:00 AM is genuinely the next
+  // calendar date. Asserting one date for the whole day was wrong for exactly that
+  // case. Detected here as a later item's clock time being earlier than an earlier
+  // item's — the actual signal midnight was crossed, not a guess.
+  function parseClockMinutes(timeStr) {
+    if (!timeStr) return null;
+    const m = String(timeStr).trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i);
+    if (!m) return null;
+    let h = parseInt(m[1], 10);
+    const min = parseInt(m[2], 10);
+    const ampm = (m[3] || '').toUpperCase();
+    if (ampm === 'PM' && h !== 12) h += 12;
+    if (ampm === 'AM' && h === 12) h = 0;
+    return h * 60 + min;
+  }
+  function findMidnightCrossingIndex(items) {
+    if (!Array.isArray(items)) return -1;
+    let lastMins = null;
+    for (let i = 0; i < items.length; i++) {
+      const mins = parseClockMinutes(items[i].time);
+      if (mins === null) continue; // non-clock time ("—", "flexible") — skip, not a signal either way
+      if (lastMins !== null && mins < lastMins - 60) return i; // more than an hour "earlier" than the previous item = midnight was crossed here
+      lastMins = mins;
+    }
+    return -1;
+  }
+  // A day whose own items cross midnight (an overnight train, for example) gets
+  // split: everything after the crossing moves into its OWN new tab. Never merged
+  // into whatever the next day already had planned (that combined two
+  // independently-planned days and produced duplicate items like two breakfasts),
+  // and never left in one combined tab either. This only ever inserts ONE new
+  // entry immediately after the day it split from — nothing before it moves, so
+  // no other day's numbering or position is affected.
+  for (let i = 0; i < flatDays.length; i++) {
+    const crossingIdx = findMidnightCrossingIndex(flatDays[i].items);
+    if (crossingIdx === -1) continue;
+    const movedItems = flatDays[i].items.splice(crossingIdx);
+    if (movedItems.length) {
+      flatDays.splice(i + 1, 0, {
+        day_number: (flatDays[i].day_number || 0) + 1,
+        city: flatDays[i].city,
+        hotel: flatDays[i].hotel,
+        hotelReason: flatDays[i].hotelReason,
+        hotelVerified: flatDays[i].hotelVerified,
+        day_purpose: 'Continued',
+        why_this_order: "Continuing the previous day's overnight journey, which crossed into this date.",
+        items: movedItems
+      });
+    }
+  }
+  if(state.datesKnown && state.dep){
+    const startDate = new Date(state.dep.y, state.dep.m, state.dep.d);
+    flatDays.forEach((d, i) => {
+      const dayDate = new Date(startDate);
+      dayDate.setDate(dayDate.getDate() + i);
+      d.dateLabel = fmtDateLabel(dayDate);
+    });
+  }
+
+  if(state.currentDay >= flatDays.length) state.currentDay = 0;
+  const currentDay = flatDays[state.currentDay];
+
+  const esc = s => (s==null ? '' : String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])));
+  // Hotel tile at the top of the day removed per direct feedback for the normal
+  // case — it added no value being pinned above the itinerary when a hotel WAS
+  // suggested. But when NO hotel could be matched (stripped by the budget-tier
+  // guardrail, or never verified), staying silent is worse — the traveler is left
+  // with no hotel information at all and no indication why. This shows a plain,
+  // honest note only in that specific case, only once per stop.
+  const isFirstDayOfStop = state.currentDay === 0 || flatDays[state.currentDay - 1].city !== currentDay.city;
+  const hotelBar = document.getElementById('hotelBar');
+  if(!currentDay.hotel && isFirstDayOfStop){
+    hotelBar.style.display = 'block';
+    hotelBar.innerHTML = `<div class="warn-box" style="padding:10px 12px;"><span>🏨</span><div class="xsmall">We couldn't confidently match a hotel to your budget and stay preference for ${esc(currentDay.city || 'this destination')} — worth searching directly on Booking.com or MakeMyTrip for options in your range.</div></div>`;
+  } else {
+    hotelBar.style.display = 'none';
+  }
+
+  const tabsWrap = document.getElementById('dayTabs');
+  tabsWrap.innerHTML = '';
+  flatDays.forEach((d,i)=>{
+    const btn = document.createElement('button');
+    btn.className = 'pill' + (i===state.currentDay?' active':'');
+    btn.style.flex = '0 0 auto';
+    const cityPart = isMultiCity ? ` · ${d.city}` : '';
+    btn.textContent = `Day ${d.day_number}${cityPart}`;
+    btn.onclick = ()=>{ state.currentDay = i; renderItinerary(); };
+    tabsWrap.appendChild(btn);
+  });
+
+  let html = '<div class="itin-panel">';
+  if(currentDay.day_purpose || currentDay.dateLabel){
+    // One compact line, chip-styled — not a bold paragraph-style header competing
+    // with the hotel block for attention at the top of the panel.
+    html += `<div style="margin-bottom:8px;"><span class="day-chip">${esc(currentDay.day_purpose)}</span>${currentDay.dateLabel ? `<span class="date-chip">${esc(currentDay.dateLabel)}</span>` : ''}</div>`;
+  }
+  if(currentDay.why_this_order){
+    html += `<p class="xsmall muted" style="margin:0 0 10px;">${esc(currentDay.why_this_order)}</p>`;
+  }
+
+  const items = Array.isArray(currentDay.items) ? currentDay.items : [];
+  if(items.length === 0){
+    html += `<p class="small muted" style="padding:16px 0;text-align:center;">No specific suggestions for this day — explore ${esc(currentDay.city)} at your own pace.</p>`;
+  } else {
+    // Table structure, as it originally was — a missing "Getting there" value on one
+    // row (e.g. an in-hotel breakfast with nothing to navigate to) is normal and just
+    // renders as an empty cell; it was never a layout problem needing a redesign.
+    html += `<div class="itin-scroll" style="max-height:48vh;overflow-y:auto;-webkit-overflow-scrolling:touch;">
+      <table style="width:100%;border-collapse:collapse;font-size:12.5px;">
+        <thead><tr style="text-align:left;border-bottom:1px solid var(--border);position:sticky;top:0;background:#fff;">
+          <th style="padding:6px 4px;background:#fff;">Time</th>
+          <th style="padding:6px 4px;background:#fff;">Activity</th>
+          <th style="padding:6px 4px;background:#fff;">Getting there</th>
+          <th style="padding:6px 4px;background:#fff;">Notes</th>
+        </tr></thead><tbody>`;
+    // Badge only ever shows for hotels and restaurants (type:'meal') — the categories
+    // where a wrong name has real stakes (booking, showing up expecting a real place).
+    const verifyBadge = (verified) => verified===true
+      ? `<span class="verify-badge ok" title="Verified">✅</span>`
+      : `<span class="verify-badge unverified" title="Unverified">⚠️</span>`;
+    items.forEach((item, itemIdx)=>{
+      const transport = item.transport_mode ? ` (${esc(item.transport_mode)})` : '';
+      // Badge covers food places (type:'meal') and anything referencing the hotel
+      // itself (check-in, checkout, breakfast at the hotel) — the two categories
+      // with real stakes (booking, showing up expecting a real place). This also
+      // restores hotel verification visibility now that the top-of-day hotel tile
+      // is gone — previously the hotel's status only ever showed there.
+      const isHotelItem = item.place_name && currentDay.hotel && item.place_name.toLowerCase().trim() === currentDay.hotel.toLowerCase().trim();
+      const badge = ((item.type==='meal' || isHotelItem) && item.place_name && item.verified!==undefined) ? verifyBadge(item.verified) : '';
+      const gettingThere = item.navigation ? `${esc(item.navigation)}${transport}` : (item.transport_mode ? esc(item.transport_mode) : '—');
+      // A blank title has happened in real output — fall back to something derived
+      // from data that does exist (navigation or place_name) rather than showing nothing.
+      const title = item.activity || item.navigation || item.place_name || 'Untitled step';
+      html += `<tr style="border-bottom:1px solid var(--border);vertical-align:top;">
+        <td style="padding:8px 4px;white-space:nowrap;color:var(--muted);">${esc(item.time) || '—'}</td>
+        <td style="padding:8px 4px;font-weight:600;">${esc(title)}${badge}</td>
+        <td style="padding:8px 4px;color:var(--muted);">${gettingThere}</td>
+        <td style="padding:8px 4px;color:var(--muted);">${esc(item.notes) || '—'}</td>
+      </tr>`;
+    });
+    html += `</tbody></table></div>`;
+  }
+  html += '</div>';
+
+  document.getElementById('dayContent').innerHTML = html;
+}
+
+async function applyEdit(){
+  const input = document.getElementById('editInput');
+  const val = input.value.trim();
+  const diffEl = document.getElementById('editDiff');
+  if(!val || !state.itinerary) return;
+
+  const applyBtn = document.querySelector('#itinContent .inline-add .btn-secondary');
+  if(applyBtn) applyBtn.disabled = true;
+  diffEl.style.display = 'block';
+  diffEl.innerHTML = `🧭 Rebuilding your itinerary with that change...`;
+
+  // An "edit" isn't a client-side patch to the rendered table — that's exactly the kind
+  // of reconstruction that kept breaking. It's a fresh agent call with the traveler's
+  // request folded in as an extra constraint, same honesty rules applied throughout.
+  let result = null;
+  let lastError = null;
+  try {
+    result = await fetchItineraryFromAgent(val);
+  } catch(e){
+    console.error('Edit request failed:', e);
+    lastError = e;
+  }
+
+  if(applyBtn) applyBtn.disabled = false;
+
+  if(!result){
+    diffEl.innerHTML = `${classifyAgentFailure(lastError)} Your current itinerary is unchanged.`;
+    return;
+  }
+
+  document.getElementById('feasibilityWarning').style.display = 'none';
+  document.getElementById('budgetWarning').style.display = 'none';
+  document.getElementById('transportModeNote').style.display = 'none';
+  applyAgentResultWarnings(result);
+  state.itinerary = result.agentData;
+  // Same reasoning as the initial generation — attach it here too, or a regeneration
+  // silently drops the destination again.
+  state.itinerary.destination = { name: state.chosenDestination };
+  persistTripState();
+  state.currentDay = 0;
+  state.editHistoryDestination = state.chosenDestination;
+  state.lastGeneratedPrefs = { stay: state.prefs.stay, pace: state.prefs.pace, ownTransport: state.prefs.ownTransport, food: [...(state.prefs.food||[])] };
+  state.lastKnownItinerary = result.agentData; // never cleared for display purposes — always holds the last successful generation for edit/update context
+  renderItinerary();
+  document.getElementById('editDiff').style.display = 'block';
+  const allEdits = state.editHistory.map(e=>`"${e}"`).join(', ');
+  document.getElementById('editDiff').innerHTML = `✨ Rebuilt. Active changes so far: ${allEdits}`;
+  input.value = '';
+}
+
+
+
+/* ---------- BOOK: VENDOR MAPPING (B1/B3) ---------- */
+const VENDOR_MAP = { flight:"Skyscanner", train:"IRCTC", bus:"AbhiBus", hotel:"Booking.com" };
+const VENDOR_URLS = { flight:"https://www.skyscanner.co.in", train:"https://www.irctc.co.in", bus:"https://www.abhibus.com", hotel:"https://www.booking.com" };
+const TRANSPORT_ICONS = { flight:"✈️", train:"🚆", bus:"🚌", car:"🚗", bike:"🏍️" };
+
+// This is only a STARTING GUESS sent to the itinerary agent — not a final decision.
+// It has no real knowledge of distance (Hyderabad-to-Goa "budget" and Hyderabad-to-Kashmir
+// "budget" are not the same situation — a 40-hour train to save money on a route where a
+// budget flight costs about the same and saves two vacation days isn't actually the
+// budget-conscious choice). The agent, which does have real geographic knowledge, can
+// override this via "recommended_transport_mode" in its response — see runItineraryAgent.
+function decideTransportMode(nights, budgetPerPerson, stayPref){
+  if(budgetPerPerson && budgetPerPerson < 8000) return 'bus';
+  if(stayPref === 'budget') return 'train';
+  if((budgetPerPerson && budgetPerPerson < 15000) || nights >= 6) return 'train';
+  return 'flight';
+}
+state.bookingLegs = null;
+state.openFormLegId = null; // which leg's confirm/edit form is currently expanded
+state.addingExtraType = false; // whether the "what are you adding?" type picker is open
+
+// Entry point from the itinerary screen. Rebuilds legs from the current itinerary so a
+// structural edit (different hotel, added stop, etc.) is reflected — but merges in any
+// booking progress already recorded against a matching leg id, so revisiting this after
+// an unrelated itinerary edit never wipes a booking someone already confirmed.
+// Rebuilds legs from the current itinerary, merging in any booking progress already
+// recorded against a matching leg id — so this is always safe to call regardless of
+// entry point (the "Book your trip" button, the QA nav bar, browser back/forward). Used
+// to be goToBooking()-only, which meant any OTHER path into book-overview reused
+// whatever was cached in state.bookingLegs — including a stale/incomplete list left
+// over from before a buildBookingLegs() fix, with no way to ever refresh it short of
+// re-clicking that one button. Now every path gets the same safe refresh.
+function refreshBookingLegs(){
+  const freshLegs = buildBookingLegs();
+  const prevLegs = state.bookingLegs || [];
+  const mergedItineraryLegs = freshLegs.map(fresh=>{
+    const prev = prevLegs.find(l=>l.id===fresh.id);
+    if(prev && prev.status !== 'not_booked'){
+      return { ...fresh, status:prev.status, ref:prev.ref, amountPaid:prev.amountPaid,
+        date:prev.date, time:prev.time, place:prev.place, screenshotName:prev.screenshotName,
+        pickupPoint:prev.pickupPoint };
+    }
+    return fresh;
+  });
+  // Ad-hoc bookings aren't derived from the itinerary at all, so buildBookingLegs()
+  // never regenerates them — carry them forward as-is (isExtra, not type==='other',
+  // since an ad-hoc entry can be any type: an extra hotel or bus, not just vendor-less)
+  // or they'd silently disappear every time this runs.
+  const otherLegs = prevLegs.filter(l=>l.isExtra);
+  state.bookingLegs = [...mergedItineraryLegs, ...otherLegs];
+}
+function goToBooking(){
+  refreshBookingLegs();
+  state.openFormLegId = null;
+  showScreen('book-overview');
+}
+// state.dep/state.ret are already-known trip constraints (set back at Plan), not a
+// guess — safe to prefill from, unlike leg.cost. isoDate feeds the <input type=date>
+// default; shortDate is what shows in the leg's summary line.
+function isoDate(d){ if(!d) return ''; const p=n=>String(n).padStart(2,'0'); return `${d.y}-${p(d.m+1)}-${p(d.d)}`; }
+function shortDate(d){ if(!d) return ''; return new Date(d.y,d.m,d.d).toLocaleDateString('en-IN',{day:'numeric',month:'short'}); }
+
+// Rewritten against the REAL agent output schema (checked directly against the
+// itinerary agent's system prompt — see chat), which has neither bookType tags nor a
+// pre-set stopIndex per day; those only ever existed in an earlier hand-built mock.
+// Follows the same stop-flattening approach renderItinerary() already uses correctly:
+// single-city trips carry hotel_suggestion/hotel_reason/days at the top level;
+// multi-city trips replace those with a stops[] array, each carrying its own
+// hotel_suggestion/hotel_reason/days. Transport legs are identified by item.type
+// ('transport') plus item.transport_mode being one of the real intercity modes
+// (Flight/Train/Bus) — Walk/Cab/Metro/Auto are local transfers, never bookable legs.
+const INTERCITY_MODES = ['Train','Bus','Flight'];
+// Absolute day offset from trip start (0 = departure day) — day_number resets per stop
+// in a multi-city trip so it can't be used for date math directly, but the flat index
+// can (same reasoning renderItinerary() already uses for its own date labels).
+function addDaysTo(dateObj, n){ const d = new Date(dateObj.y, dateObj.m, dateObj.d); d.setDate(d.getDate()+n); return {y:d.getFullYear(), m:d.getMonth(), d:d.getDate()}; }
+// The agent's own schema allows omitting transport_mode, and in practice it often does
+// exactly that on the long-haul boarding/arrival items specifically — while still
+// reliably setting it on local Cab/Auto transfers (confirmed against two real trips).
+// So transport_mode presence can't be the primary signal for "is this a real intercity
+// leg" — the activity wording is more reliable, and when transport_mode is missing this
+// resolves the actual mode from that same text instead of giving up.
+function resolveModeFromText(text){
+  const t = (text||'').toLowerCase();
+  if(/flight|airways|airlines/.test(t)) return 'Flight';
+  if(/\btrain\b|express|rajdhani|shatabdi|duronto|superfast|garib rath|passenger/.test(t)) return 'Train';
+  if(/\bbus\b/.test(t)) return 'Bus';
+  return null;
+}
+function resolveIntercityMode(item){
+  if(item.transport_mode && INTERCITY_MODES.includes(item.transport_mode)) return item.transport_mode;
+  return resolveModeFromText(item.activity);
+}
+// An "Arrive at X Railway Station" item can carry the same (or no) transport_mode as the
+// actual booking-worthy departure event, so mode alone was never enough to tell them
+// apart. Checked against real agent output: the genuine bookable event is consistently
+// phrased "Board the [name] ([number]) to/back to [city]" — searching for that wording
+// first, and only falling back to any resolvable-mode item if no such wording exists
+// anywhere in the trip, avoids picking an arrival event by mistake.
+function findBoardingDay(flatDays, fromEnd){
+  const range = fromEnd ? [...flatDays].reverse() : flatDays;
+  for(const entry of range){
+    const items = (entry.day.items||[]).filter(i => i.type==='transport' && /board/i.test(i.activity||'') && resolveIntercityMode(i));
+    if(items.length) return { entry, item: fromEnd ? items[items.length-1] : items[0] };
+  }
+  return null;
+}
+function findAnyIntercityDay(flatDays, fromEnd){
+  const range = fromEnd ? [...flatDays].reverse() : flatDays;
+  for(const entry of range){
+    const items = (entry.day.items||[]).filter(i => i.type==='transport' && resolveIntercityMode(i));
+    if(items.length) return { entry, item: fromEnd ? items[items.length-1] : items[0] };
+  }
+  return null;
+}
+function buildBookingLegs(){
+  const it = state.itinerary;
+  if(!it) return [];
+  const hasStopsArray = Array.isArray(it.stops) && it.stops.length > 0;
+  const stopsList = hasStopsArray ? it.stops : [{ city: state.chosenDestination, hotel_suggestion: it.hotel_suggestion, hotel_reason: it.hotel_reason, days: it.days }];
+  const legs = [];
+
+  const flatDays = [];
+  stopsList.forEach((stop, stopIdx) => (stop.days||[]).forEach(day => flatDays.push({ day, stopIdx })));
+  if(!flatDays.length) return [];
+  flatDays.forEach((entry, i) => { entry.offset = i; });
+
+  const onwardFound = findBoardingDay(flatDays, false) || findAnyIntercityDay(flatDays, false);
+  if(onwardFound){
+    const { entry, item } = onwardFound;
+    const resolvedMode = resolveIntercityMode(item); // e.g. 'Train' — may come from the text, not the field
+    const mode = resolvedMode.toLowerCase();
+    const d = addDaysTo(state.dep, entry.offset);
+    legs.push({ id:'transport_onward', type:mode, plannedMode:mode, icon:TRANSPORT_ICONS[mode],
+      name:`${resolvedMode} to ${state.chosenDestination} (onward)`, vendor:VENDOR_MAP[mode], cost:0, status:'not_booked', ref:null,
+      amountPaid:null, date:null, time:null, place:'', screenshotName:null, presetDate:isoDate(d), isExtra:false,
+      details: `${item.activity}${item.time ? ` · ${item.time}, ${shortDate(d)}` : ''}` });
+  }
+  const retFound = findBoardingDay(flatDays, true) || findAnyIntercityDay(flatDays, true);
+  if(retFound){
+    const { entry, item } = retFound;
+    const resolvedMode = resolveIntercityMode(item);
+    const mode = resolvedMode.toLowerCase();
+    const d = addDaysTo(state.dep, entry.offset);
+    legs.push({ id:'transport_return', type:mode, plannedMode:mode, icon:TRANSPORT_ICONS[mode],
+      name:`${resolvedMode} from ${state.chosenDestination} (return)`, vendor:VENDOR_MAP[mode], cost:0, status:'not_booked', ref:null,
+      amountPaid:null, date:null, time:null, place:'', screenshotName:null, presetDate:isoDate(d), isExtra:false,
+      details: `${item.activity}${item.time ? ` · ${item.time}, ${shortDate(d)}` : ''}` });
+  }
+
+  // Nights and check-in date come from actual check-in/checkout evidence at the hotel —
+  // NOT "every day in this stop," which was the exact bug (a stop's day list includes
+  // pure travel days like an overnight-train day or an arrive-then-go-home day, where
+  // the traveler was never at the hotel at all). If no clear evidence is found, nights
+  // and the date are left blank rather than guessed — same rule used everywhere else.
+  stopsList.forEach((stop, s) => {
+    if(!stop.hotel_suggestion) return;
+    const hotelNameLower = stop.hotel_suggestion.trim().toLowerCase();
+    const stopFlatDays = flatDays.filter(e => e.stopIdx === s);
+    let checkinEntry = null, checkoutEntry = null;
+    stopFlatDays.forEach(entry => {
+      (entry.day.items||[]).forEach(item => {
+        if(!item.place_name || item.place_name.trim().toLowerCase()!==hotelNameLower) return;
+        const text = (item.activity||'').toLowerCase();
+        if(!checkinEntry && /check[\s-]?in/.test(text)) checkinEntry = entry;
+        if(/check[\s-]?out/.test(text)) checkoutEntry = entry;
+      });
+    });
+    // Checkout wording has been reliably explicit in real output ("Checkout from X"), so
+    // it's trusted as-is. Check-in wording varies more ("Early check-in..." vs "Transfer
+    // to X" vs "Rest and unpack at X") — when no explicit "check-in" phrase exists
+    // anywhere, fall back to the FIRST day this stop mentions the hotel by name at all,
+    // which is a safe proxy specifically because it's the first (not last) occurrence —
+    // it can never accidentally land on checkout day or a later "back for the night" one.
+    if(!checkinEntry){
+      checkinEntry = stopFlatDays.find(entry =>
+        (entry.day.items||[]).some(item => item.place_name && item.place_name.trim().toLowerCase()===hotelNameLower)
+      ) || null;
+    }
+    const nights = (checkinEntry && checkoutEntry && checkoutEntry.offset > checkinEntry.offset)
+      ? checkoutEntry.offset - checkinEntry.offset : null;
+    const presetDate = checkinEntry ? isoDate(addDaysTo(state.dep, checkinEntry.offset)) : '';
+    const plannedHotelName = stop.hotel_suggestion;
+    legs.push({ id:`hotel_${s}`, type:'hotel', icon:'🏨', name:plannedHotelName, plannedName:plannedHotelName,
+      vendor:VENDOR_MAP.hotel, cost:0, status:'not_booked', ref:null,
+      amountPaid:null, date:null, time:null, place:'', screenshotName:null, presetDate,
+      nights:null, plannedNights:nights, isExtra:false,
+      details: nights!=null
+        ? `${stop.hotel_reason ? stop.hotel_reason+' · ' : ''}${nights} night${nights>1?'s':''}`
+        : (stop.hotel_reason || `Stay in ${stop.city || state.chosenDestination} — nights not confirmed, please check`) });
+  });
+
+  return legs;
+}
+
+function renderBookScreen(){
+  if(!state.bookingLegs) state.bookingLegs = buildBookingLegs();
+  const legs = state.bookingLegs;
+  // Progress tracks the itinerary's REQUIRED legs only — ad-hoc extras are bookings the
+  // user chose to log for their own tracking, not something the plan asked for, so
+  // mixing them into "X of Y booked" would misrepresent how much required booking is
+  // actually left. They still count fully toward Budget Actual — see renderBudget.
+  const requiredLegs = legs.filter(l=>!l.isExtra);
+  const confirmed = requiredLegs.filter(l=>l.status==='confirmed').length;
+  document.getElementById('bookProgressFill').style.width = `${requiredLegs.length ? (confirmed/requiredLegs.length)*100 : 100}%`;
+  document.getElementById('bookProgressLabel').textContent = `${confirmed} of ${requiredLegs.length} booked`;
+  renderBudget();
+  const goTravelArea = document.getElementById('bookGoTravelArea');
+  if(goTravelArea){
+    goTravelArea.innerHTML = (requiredLegs.length && confirmed===requiredLegs.length)
+      ? `<button class="btn-primary" style="width:100%;margin-bottom:10px;" onclick="showScreen('travel-hub')">All booked — Go to Travel ↗</button>`
+      : '';
+  }
+
+  const wrap = document.getElementById('bookLegsList');
+  wrap.innerHTML = legs.map(leg=>{
+    const statusPill = leg.status==='confirmed'
+      ? `<span class="status-pill status-good">✓ Confirmed${leg.ref?` · ${leg.ref}`:''}</span>`
+      : leg.status==='pending'
+      ? `<span class="status-pill" style="background:var(--warn-light);color:var(--warn);">Pending confirmation</span>`
+      : `<span class="status-pill" style="background:var(--surface);color:var(--muted);">Not booked</span>`;
+
+    let actionHtml = '';
+    if(leg.status==='confirmed'){
+      const attachmentLink = leg.screenshotUrl
+        ? `<button class="btn-ghost" style="height:24px;font-size:11.5px;padding:0;margin-bottom:6px;text-align:left;" onclick="window.open('${leg.screenshotUrl}','_blank')">📎 View attachment</button><br>`
+        : leg.screenshotName ? `<p class="xsmall muted" style="margin:0 0 6px;">📎 ${leg.screenshotName} (uploading…)</p>` : '';
+      actionHtml = (state.openFormLegId===leg.id) ? bookingFormHtml(leg) : `
+        ${attachmentLink}
+        <div style="display:flex;gap:8px;">
+          <button class="btn-secondary" style="height:34px;font-size:12px;" onclick="openBookingForm('${leg.id}')">✏️ Edit</button>
+          <button class="btn-secondary" style="height:34px;font-size:12px;color:var(--danger);border-color:var(--danger-light);" onclick="deleteBooking('${leg.id}')">🗑 Delete</button>
+        </div>`;
+    } else if(leg.status==='pending'){
+      actionHtml = (state.openFormLegId===leg.id) ? bookingFormHtml(leg) : `
+        <button class="btn-secondary" style="height:34px;font-size:12px;" onclick="openBookingForm('${leg.id}')">Enter booking details</button>`;
+    } else if(!leg.vendor){
+      // No vendor at all (ad-hoc, vendor-less) — always go straight to the form, no redirect step.
+      actionHtml = (state.openFormLegId===leg.id) ? bookingFormHtml(leg) : `
+        <div style="display:flex;gap:8px;">
+          <button class="btn-secondary" style="height:34px;font-size:12px;" onclick="openBookingForm('${leg.id}')">Enter details</button>
+          ${leg.isExtra ? `<button class="btn-ghost" style="height:34px;font-size:12px;" onclick="removeUnconfirmedExtra('${leg.id}')">✕ Remove</button>` : ''}
+        </div>`;
+    } else {
+      // not_booked with a vendor — normal Book/Browse flow, plus the option to mark as
+      // booked elsewhere without redirecting first. Extras also get a Remove, since an
+      // itinerary-required leg can't be discarded but a user-added one can.
+      actionHtml = `
+        <div style="display:flex;gap:8px;margin-bottom:6px;">
+          <button class="btn-primary" style="height:38px;font-size:13px;" onclick="redirectToBook('${leg.id}')">Book on ${leg.vendor} ↗</button>
+          <button class="btn-secondary" style="width:auto;padding:0 12px;height:38px;font-size:12px;" onclick="browseInstead('${leg.id}')">Browse</button>
+        </div>
+        ${state.openFormLegId===leg.id ? bookingFormHtml(leg) : `
+          <button class="btn-ghost" style="height:24px;font-size:11.5px;padding:0;text-align:left;" onclick="openBookingForm('${leg.id}')">Already booked this elsewhere? Add it manually</button>
+          ${leg.isExtra ? `<br><button class="btn-ghost" style="height:22px;font-size:11.5px;padding:0;text-align:left;" onclick="removeUnconfirmedExtra('${leg.id}')">✕ Remove</button>` : ''}`}`;
+    }
+
+    return `
+      <div class="card" style="padding:14px;">
+        <div class="row-between" style="margin-bottom:4px;">
+          <span class="small" style="font-weight:700;">${leg.icon} ${leg.name}</span>
+          ${leg.status==='confirmed' && typeof leg.amountPaid==='number' ? `<span class="xsmall muted" style="font-weight:700;">₹${leg.amountPaid.toLocaleString()} paid</span>` : ''}
+        </div>
+        <p class="xsmall muted" style="margin:0 0 8px;">${legDetailsLine(leg)}</p>
+        <div style="margin-bottom:8px;">${statusPill}</div>
+        ${actionHtml}
+      </div>`;
+  }).join('');
+  renderAddBookingArea();
+}
+
+
+// For hotels, deep-link into a real Booking.com search for the specific name we already
+// told the traveler — sending them to the bare homepage after naming a hotel is nearly
+// useless, they'd have to retype it themselves. Flights/trains don't have a reliable
+// no-login search-URL pattern to deep-link into, so those still open the vendor homepage.
+function vendorSearchUrl(leg){
+  if(leg.type==='hotel'){
+    const cityHint = (state.itinerary && state.itinerary.destination && state.itinerary.destination.name) || '';
+    return `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(leg.name+' '+cityHint)}`;
+  }
+  return VENDOR_URLS[leg.type];
+}
+function redirectToBook(legId){
+  const leg = state.bookingLegs.find(l=>l.id===legId);
+  window.open(vendorSearchUrl(leg), '_blank');
+  toast(`Opened ${leg.vendor} — complete your booking there, then come back to confirm`);
+  leg.status = 'pending';
+  state.openFormLegId = legId; // auto-open so the form is ready the moment they're back, same as before this was gated
+  renderBookScreen();
+}
+function browseInstead(legId){
+  const leg = state.bookingLegs.find(l=>l.id===legId);
+  window.open(vendorSearchUrl(leg), '_blank');
+  toast(`Opened ${leg.vendor} to browse — this is B3, a secondary path`);
+}
+// Builds the confirm/edit form for a leg. Same markup for a first-time confirm, a
+// "booked elsewhere" manual add, and an edit of an already-confirmed entry — only the
+// prefilled values and the submit-button label change.
+// Real path: POST to the n8n webhook once it exists, which uploads to the private
+// booking-screenshots bucket (service-role only, never public) and returns {path}.
+// Fallback (today, no webhook configured): an in-browser object URL — works for
+// same-session preview/testing only, does NOT survive a reload and is never sent
+// anywhere. Never silently pretend the fallback is real persistence.
+async function uploadScreenshotIfPresent(leg, file){
+  if(!file) return;
+  if(N8N_UPLOAD_SCREENSHOT_WEBHOOK_URL){
+    try{
+      const form = new FormData();
+      form.append('file', file);
+      form.append('legId', leg.id);
+      const res = await fetch(N8N_UPLOAD_SCREENSHOT_WEBHOOK_URL, { method:'POST', body: form });
+      const data = await res.json();
+      if(data && data.path){ leg.screenshotPath = data.path; leg.screenshotUrl = data.url || null; }
+      renderBookScreen();
+      return;
+    } catch(e){
+      console.error('Screenshot upload failed, falling back to local preview:', e);
+    }
+  }
+  leg.screenshotUrl = URL.createObjectURL(file); // session-only preview, not persisted
+  renderBookScreen();
+}
+
+function bookingFormHtml(leg){
+  const it = state.itinerary;
+  const isHotel = leg.type==='hotel';
+  const isOther = leg.type==='other';
+  const defaultPlace = leg.place || (isHotel
+    ? leg.name
+    : isOther ? '' : (leg.id==='transport_onward' ? `${state.from} → ${it.destination.name}` : `${it.destination.name} → ${state.from}`));
+  const isTransport = !isHotel && !isOther;
+  // Rendered for every transport leg (not just leg.type==='bus'), wrapped and hidden by
+  // default unless already bus — the mode dropdown's onchange below toggles this live,
+  // so switching to Bus shows the field immediately instead of only after a re-edit.
+  const pickupField = isTransport
+    ? `<div id="pickup-wrap-${leg.id}" style="display:${leg.type==='bus'?'block':'none'};">
+         <input id="pickup-${leg.id}" placeholder="Pickup point (from AbhiBus, optional)" value="${leg.pickupPoint||''}" style="margin-bottom:8px;">
+       </div>`
+    : '';
+  // Nights only for hotel legs — changing it isn't a simple field edit: it shifts which
+  // day the traveler is still in this city, same category of problem as a transport mode
+  // change, so confirmLeg() routes a changed nights count through the replan flow, not a
+  // plain itinerary patch. Prefilled with the itinerary's planned count where known.
+  const nightsField = isHotel
+    ? `<label class="field-label">Nights</label><input id="nights-${leg.id}" type="number" min="1" placeholder="Nights" value="${leg.nights!=null?leg.nights:(leg.plannedNights||'')}" style="margin-bottom:8px;width:100%;">`
+    : '';
+  // Mode selector only for transport legs — an ad-hoc "other" booking has no itinerary
+  // leg to compare against, so the mode-mismatch/replan check doesn't apply to it.
+  const modeField = isTransport ? `
+      <label class="field-label" style="margin-top:2px;">Mode actually booked</label>
+      <select id="mode-${leg.id}" style="margin-bottom:8px;" onchange="document.getElementById('pickup-wrap-${leg.id}').style.display = this.value==='bus' ? 'block' : 'none';">
+        <option value="flight" ${leg.type==='flight'?'selected':''}>Flight</option>
+        <option value="train" ${leg.type==='train'?'selected':''}>Train</option>
+        <option value="bus" ${leg.type==='bus'?'selected':''}>Bus</option>
+      </select>` : '';
+  const refValue = (leg.ref && leg.ref!=='reference pending') ? leg.ref : '';
+  const headerText = leg.status==='confirmed'
+    ? 'Edit this booking'
+    : leg.status==='pending'
+      ? `Completed booking on ${leg.vendor}? Confirm below.`
+      : 'Add your booking details below.'; // opened via "already booked elsewhere" — don't assume a vendor they may never have used
+  const bounds = dateBounds();
+  return `
+    <div class="card" style="box-shadow:none;background:var(--surface);padding:10px;margin-top:8px;">
+      <p class="xsmall muted" style="margin:0 0 8px;">${headerText}</p>
+      <label class="field-label">${isHotel ? 'Place' : isOther ? 'What did you book?' : 'From → To'}</label>
+      <input id="place-${leg.id}" value="${defaultPlace}" style="margin-bottom:8px;">
+      ${nightsField}
+      ${modeField}
+      <div class="inline-add" style="margin-bottom:8px;">
+        <input id="amount-${leg.id}" type="number" placeholder="Amount paid" value="${leg.amountPaid!=null?leg.amountPaid:''}" style="flex:1;">
+        <input id="ref-${leg.id}" placeholder="Reference number" value="${refValue}" style="flex:1;">
+      </div>
+      <label class="field-label" style="font-weight:400;text-transform:none;">Date${leg.isExtra ? ' (optional)' : ''}</label>
+      <div class="inline-add" style="margin-bottom:8px;">
+        <input id="date-${leg.id}" type="date" min="${bounds.min}" max="${bounds.max}" value="${leg.date||leg.presetDate||''}" style="flex:1;">
+        <input id="time-${leg.id}" type="time" value="${leg.time||''}" style="flex:1;">
+      </div>
+      ${pickupField}
+      <label class="field-label">Screenshot (optional — attached for your reference, not auto-read)</label>
+      <input id="screenshot-${leg.id}" type="file" accept="image/*" style="margin-bottom:4px;">
+      <p class="xsmall muted" style="margin:0 0 6px;">Please crop or blur out any card/payment details before attaching.</p>
+      ${leg.screenshotName ? `<p class="xsmall muted" style="margin:-2px 0 8px;">📎 ${leg.screenshotName}</p>` : ''}
+      <div style="display:flex;gap:8px;margin-top:4px;">
+        <button class="btn-primary" style="height:36px;font-size:12.5px;" onclick="confirmLeg('${leg.id}')">${leg.status==='confirmed' ? 'Save changes' : 'Yes, confirm'}</button>
+        <button class="btn-secondary" style="height:36px;font-size:12.5px;" onclick="openBookingForm('${leg.id}')">Cancel</button>
+      </div>
+    </div>`;
+}
+// For anything the itinerary didn't already suggest — an extra hotel, a bus the
+// itinerary didn't plan for, or something with no vendor at all (gondola ride, museum
+// ticket). isExtra:true marks these apart from itinerary-derived legs everywhere it
+// matters: skipped by checkItinerarySync (nothing to patch against), excluded from the
+// required-bookings progress count, removable outright on delete, and held to relaxed
+// (not absent) mandatory fields — see confirmLeg.
+const EXTRA_TYPE_META = {
+  flight: { icon:'✈️', label:'Flight', vendor:VENDOR_MAP.flight },
+  train:  { icon:'🚆', label:'Train',  vendor:VENDOR_MAP.train  },
+  bus:    { icon:'🚌', label:'Bus',    vendor:VENDOR_MAP.bus    },
+  hotel:  { icon:'🏨', label:'Hotel',  vendor:VENDOR_MAP.hotel  },
+  other:  { icon:'🎟', label:'Other',  vendor:null }
+};
+function renderAddBookingArea(){
+  const wrap = document.getElementById('addBookingArea');
+  if(!wrap) return;
+  if(!state.addingExtraType){
+    wrap.innerHTML = `<button class="btn-secondary" style="width:100%;margin-bottom:10px;" onclick="state.addingExtraType=true; renderAddBookingArea();">＋ Add another booking</button>
+      <p class="xsmall muted" style="margin:0 0 8px;">Booked something extra, or different from the plan? Add it here.</p>`;
+    return;
+  }
+  wrap.innerHTML = `
+    <div class="card" style="padding:12px;margin-bottom:10px;">
+      <p class="xsmall muted" style="margin:0 0 8px;font-weight:700;">What are you adding?</p>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        ${Object.entries(EXTRA_TYPE_META).map(([type,m])=>
+          `<button class="btn-secondary" style="width:auto;padding:0 12px;height:34px;font-size:12.5px;" onclick="addExtraBooking('${type}')">${m.icon} ${m.label}</button>`
+        ).join('')}
+        <button class="btn-ghost" style="height:34px;font-size:12.5px;" onclick="state.addingExtraType=false; renderAddBookingArea();">Cancel</button>
+      </div>
+    </div>`;
+}
+function addExtraBooking(type){
+  if(!state.bookingLegs) state.bookingLegs = buildBookingLegs();
+  const meta = EXTRA_TYPE_META[type] || EXTRA_TYPE_META.other;
+  const id = `extra_${Date.now()}`;
+  state.bookingLegs.push({ id, type, isExtra:true, icon:meta.icon, name:`Additional ${meta.label} booking`, plannedName:null,
+    vendor:meta.vendor, cost:0, status:'not_booked', ref:null, amountPaid:null, date:null, time:null,
+    place:'', screenshotName:null, presetDate:'', details:'', nights:null, plannedNights:null });
+  state.addingExtraType = false;
+  state.openFormLegId = meta.vendor ? null : id; // vendor types go through Book/Browse first, like real legs; vendor-less goes straight to the form
+  renderBookScreen();
+}
+function removeUnconfirmedExtra(legId){
+  state.bookingLegs = state.bookingLegs.filter(l=>l.id!==legId);
+  state.openFormLegId = null;
+  renderBookScreen();
+}
+// Native <input type=date> min/max — a generous ±6 month window around today, just to
+// stop obviously garbage values (a date input with no bounds previously let "0005"
+// through) without being so tight it rejects a legitimately-planned trip.
+function dateBounds(){
+  const min = new Date(today); min.setMonth(min.getMonth()-6);
+  const max = new Date(today); max.setMonth(max.getMonth()+6);
+  const iso = d => d.toISOString().slice(0,10);
+  return { min: iso(min), max: iso(max) };
+}
+// Every OTHER time string in this app is 12hr ("06:45 PM") — <input type=time> stores
+// and returns 24hr "HH:MM" regardless of the picker's own display, so this is what
+// keeps a saved time consistent with the rest of the app once it's shown back on a card.
+function formatTime12(t){
+  if(!t) return '';
+  const [hStr,mStr] = t.split(':');
+  let h = parseInt(hStr,10); const m = mStr;
+  const ampm = h>=12 ? 'PM' : 'AM';
+  h = h%12; if(h===0) h=12;
+  return `${String(h).padStart(2,'0')}:${m} ${ampm}`;
+}
+// Recomputed at render time rather than stored — this is what fixes the "details never
+// update after save" and "undefined for ad-hoc bookings" issues: before confirmation,
+// show the itinerary's planned info (or a light placeholder for ad-hoc legs, which have
+// no planned info to show); once confirmed, build entirely from what the user actually
+// entered, so an edited hotel name/date is always what's on screen.
+function legDetailsLine(leg){
+  if(leg.status!=='confirmed'){
+    if(leg.details) return leg.details;
+    return leg.isExtra ? 'No details yet — tap below to add them' : '';
+  }
+  const parts = [];
+  if(leg.date){ const d=new Date(leg.date+'T00:00:00'); parts.push(d.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})); }
+  if(leg.time) parts.push(formatTime12(leg.time));
+  if(leg.type==='hotel' && leg.nights) parts.push(`${leg.nights} night${leg.nights>1?'s':''}`);
+  if(leg.type==='bus' && leg.pickupPoint) parts.push(`Pickup: ${leg.pickupPoint}`);
+  if(leg.ref && leg.ref!=='reference pending') parts.push(leg.ref);
+  return parts.join(' · ') || 'Confirmed';
+}
+
+function openBookingForm(legId){
+  state.openFormLegId = (state.openFormLegId===legId) ? null : legId;
+  renderBookScreen();
+}
+function confirmLeg(legId){
+  const leg = state.bookingLegs.find(l=>l.id===legId);
+  if(!leg) return;
+  const amtInput = document.getElementById(`amount-${legId}`);
+  const dateInput = document.getElementById(`date-${legId}`);
+  const timeInput = document.getElementById(`time-${legId}`);
+  const placeInput = document.getElementById(`place-${legId}`);
+  const refInput = document.getElementById(`ref-${legId}`);
+  const modeSelect = document.getElementById(`mode-${legId}`);
+  const nightsInput = document.getElementById(`nights-${legId}`);
+  const screenshotInput = document.getElementById(`screenshot-${legId}`);
+
+  const amount = amtInput ? parseInt(amtInput.value) : NaN;
+  const dateVal = dateInput ? dateInput.value : '';
+  const placeVal = placeInput ? placeInput.value.trim() : '';
+  // Amount and "what/where" are required for every booking, itinerary-required or ad-hoc
+  // — those are the two things that make an entry worth anything for Budget/identification.
+  // Date is the one field relaxed for ad-hoc extras (leg.isExtra): you might log a
+  // purchase without remembering the exact date, and it's not required to make the
+  // entry useful the way amount/place are.
+  if(!amount || amount<=0){ toast('Enter a valid amount paid'); return; }
+  if(!dateVal && !leg.isExtra){ toast('Enter the booking date'); return; }
+  if(!placeVal){ toast(leg.type==='hotel' ? 'Enter the hotel/place' : leg.type==='other' ? 'Enter what you booked' : 'Enter the route (From → To)'); return; }
+
+  const prevNights = leg.nights!=null ? leg.nights : leg.plannedNights;
+  const bookedMode = modeSelect ? modeSelect.value : leg.type;
+  leg.amountPaid = amount;
+  leg.date = dateVal || null;
+  leg.time = (timeInput && timeInput.value) ? timeInput.value : null; // optional, not required
+  leg.place = placeVal;
+  // Place holds an actual NAME for hotel/other legs (vs a route string for transport),
+  // so it's safe to promote to the display name here — this is what makes the card show
+  // "Hotel Darbar" after editing instead of the stale planned "Palm Grove Inn". The
+  // ORIGINAL planned name is preserved separately in plannedName for the mismatch check
+  // below — overwriting leg.name here must never affect that comparison.
+  if(leg.type==='hotel' || leg.type==='other') leg.name = placeVal;
+  leg.ref = (refInput && refInput.value.trim()) ? refInput.value.trim() : 'reference pending';
+  if(nightsInput && nightsInput.value) leg.nights = parseInt(nightsInput.value) || null;
+  // Read the pickup field against bookedMode, not the leg's old type — selecting "Bus" in
+  // the mode dropdown must make the (already-rendered) pickup field's value stick, even
+  // though leg.type hasn't been updated to 'bus' yet at this point in the function.
+  if(bookedMode==='bus'){
+    const pickupInput = document.getElementById(`pickup-${legId}`);
+    if(pickupInput && pickupInput.value.trim()) leg.pickupPoint = pickupInput.value.trim();
+  }
+  // Screenshot is stored as an attachment only — no OCR/extraction in this build
+  // (Option A first, per plan). Field-level pre-fill from a vision call is a fast-follow.
+  let screenshotFile = null;
+  if(screenshotInput && screenshotInput.files && screenshotInput.files[0]){
+    screenshotFile = screenshotInput.files[0];
+    leg.screenshotName = screenshotFile.name;
+  }
+  // Nights changed from what was planned shifts which day the traveler is still in this
+  // city — same class of problem as a transport mode change, not a simple field edit.
+  const nightsChanged = leg.type==='hotel' && leg.plannedNights!=null && leg.nights!=null && leg.nights!==prevNights && leg.nights!==leg.plannedNights;
+  // The mode dropdown was previously only informing the one-time replan check below,
+  // then silently discarded — the leg kept its old type forever, wrong icon, wrong
+  // vendor, and (the reported bug) the pickup field staying hidden on re-edit because
+  // it's gated on leg.type==='bus', which never actually became true. Now it persists.
+  if(modeSelect && bookedMode!==leg.type){
+    const modeLabel = { flight:'Flight', train:'Train', bus:'Bus' }[bookedMode] || bookedMode;
+    leg.type = bookedMode;
+    leg.icon = TRANSPORT_ICONS[bookedMode];
+    leg.vendor = VENDOR_MAP[bookedMode];
+    if(leg.id==='transport_onward' || leg.id==='transport_return'){
+      const it = state.itinerary;
+      leg.name = leg.id==='transport_onward' ? `${modeLabel} to ${it.destination.name} (onward)` : `${modeLabel} from ${it.destination.name} (return)`;
+    } else if(leg.isExtra){
+      leg.name = `Additional ${modeLabel} booking`;
+    }
+  }
+
+  leg.status = 'confirmed';
+  state.openFormLegId = null;
+  toast(`${leg.name} confirmed ✓`);
+  renderBookScreen();
+  persistTripState();
+  checkItinerarySync(leg, bookedMode, nightsChanged);
+  if(screenshotFile) uploadScreenshotIfPresent(leg, screenshotFile); // async, re-renders itself when done
+}
+function deleteBooking(legId){
+  showConfirmModal('Remove this booking? This will update your actual spend.', ()=>{
+    const leg = state.bookingLegs.find(l=>l.id===legId);
+    if(!leg) return;
+    if(leg.isExtra){
+      state.bookingLegs = state.bookingLegs.filter(l=>l.id!==legId);
+    } else {
+      // Delete only ever affects Actual — Planned is derived from the Discovery estimate,
+      // not from booking legs, so it's untouched by this regardless.
+      leg.status = 'not_booked';
+      leg.ref = null; leg.amountPaid = null; leg.date = null; leg.time = null; leg.nights = null;
+      leg.place = ''; leg.screenshotName = null; leg.screenshotUrl = null; leg.screenshotPath = null; leg.pickupPoint = null;
+    }
+    state.openFormLegId = null;
+    toast('Booking removed');
+    renderBookScreen();
+    persistTripState();
+  });
+}
+// Decides whether a confirmed booking can be safely reflected as a simple itinerary
+// field-patch, or whether it changes something (transport mode, hotel nights) that the
+// rest of the day was sequenced around — in which case it needs a real replan, not a
+// patch.
+function checkItinerarySync(leg, bookedMode, nightsChanged){
+  if(leg.isExtra) return; // ad-hoc booking, not derived from the itinerary — nothing to sync
+  const it = state.itinerary;
+  if(!it || (!it.days && !it.stops)) return;
+  const modeChanged = leg.type!=='hotel' && bookedMode && leg.plannedMode && bookedMode!==leg.plannedMode;
+  if(modeChanged){
+    const plannedModeLabel = VENDOR_MAP[leg.plannedMode] || leg.plannedMode;
+    showConfirmModal(
+      `You booked ${VENDOR_MAP[bookedMode]||bookedMode} instead of the planned ${plannedModeLabel} — your day-by-day plan may no longer fit since arrival time has likely shifted. Queue a replan for this?`,
+      ()=>{
+        // Queued, not forced — navigating away mid-booking to replan was jarring (same
+        // reasoning that moved the hotel-name-mismatch case off an auto-action). The text
+        // waits in adaptInput; applyAdaptation() only runs once the user actually visits
+        // Travel Hub themselves.
+        state.pendingAdaptText = `I booked ${bookedMode} instead of ${leg.plannedMode}` + (leg.time?`, arriving around ${leg.time}`:'') + ' — please replan the affected day(s) around this.';
+        toast('Noted — head to Travel Hub → "Need help?" whenever you\'re ready to replan');
+      },
+      'Not now'
+    );
+    return;
+  }
+  if(nightsChanged){
+    showConfirmModal(
+      `You booked ${leg.nights} night${leg.nights>1?'s':''} instead of the planned ${leg.plannedNights} — your day-by-day plan may no longer fit since it was sequenced around ${leg.plannedNights} night${leg.plannedNights>1?'s':''} here. Queue a replan for this?`,
+      ()=>{
+        state.pendingAdaptText = `I booked ${leg.nights} nights at ${leg.name} instead of the planned ${leg.plannedNights} — please replan the affected day(s) around this.`;
+        toast('Noted — head to Travel Hub → "Need help?" whenever you\'re ready to replan');
+      },
+      'Not now'
+    );
+    return;
+  }
+  // Cost is deliberately NOT part of this check — a real booked price differing from the
+  // itinerary's rough per-item estimate is the norm, not the exception (that's exactly
+  // why these estimates were excluded from Budget's Planned figure earlier). Triggering
+  // this modal on price alone meant it fired on nearly every confirm; only a genuinely
+  // different hotel identity is worth asking about here.
+  const nameChanged = leg.type==='hotel' && leg.place && leg.plannedName && leg.place.trim().toLowerCase()!==leg.plannedName.trim().toLowerCase();
+  if(nameChanged){
+    showConfirmModal(
+      `This is different from your planned ${leg.plannedName}. Update your itinerary to match?`,
+      ()=>{ patchItineraryFromLeg(leg); }
+    );
+  }
+}
+// Only ever invoked for a hotel name mismatch (see checkItinerarySync — nameChanged is
+// hotel-only). Patches hotel_suggestion/hotel_reason, AND every mention of the old name
+// across that stop's actual day items (activity/place_name/navigation) — the day view
+// is built from that item text directly, not from hotel_suggestion, so updating only the
+// top-level field left every visible "Breakfast at [old name]" line stale. No agent
+// call — a plain find-and-replace, same "simple patch, not a replan" reasoning as
+// before, just applied completely instead of partially.
+function patchItineraryFromLeg(leg){
+  const it = state.itinerary;
+  if(!it || leg.type!=='hotel' || !leg.plannedName) return;
+  const s = parseInt(leg.id.split('_')[1], 10) || 0;
+  const hasStops = Array.isArray(it.stops) && it.stops.length;
+  const target = hasStops ? it.stops[s] : (s===0 ? it : null);
+  if(!target) return;
+  target.hotel_suggestion = leg.place;
+  target.hotel_reason = 'Updated to match your confirmed booking.';
+
+  const oldName = leg.plannedName;
+  (target.days || []).forEach(day => {
+    (day.items || []).forEach(item => {
+      ['activity','place_name','navigation'].forEach(field => {
+        if(typeof item[field] === 'string' && item[field].includes(oldName)){
+          item[field] = item[field].split(oldName).join(leg.place);
+        }
+      });
+    });
+  });
+
+  toast('Itinerary updated to match your booking ✓');
+  renderBudget();
+  persistTripState();
+}
+
+/* ---------- TRAVEL: T1-T6 ---------- */
+state.expenses = [];
+state.feedbackRating = null;
+
+function renderTravelHub(){
+  const it = state.itinerary;
+  if(!it) return;
+  // A mode/nights-change replan is queued, not auto-applied (see checkItinerarySync) —
+  // surface the "Something changed?" card only when there's actually something queued,
+  // rather than showing it permanently (out of the trimmed scope for this screen).
+  const adaptCard = document.getElementById('travelAdaptCard');
+  if(state.pendingAdaptText){
+    const adaptInput = document.getElementById('adaptInput');
+    if(adaptInput && !adaptInput.value) adaptInput.value = state.pendingAdaptText;
+    state.pendingAdaptText = null;
+    if(adaptCard) adaptCard.style.display = 'block';
+  }
+
+  document.getElementById('travelDestName').textContent = it.trip_title || state.chosenDestination || 'Your trip';
+  if(state.dep){
+    const depDate = new Date(state.dep.y, state.dep.m, state.dep.d);
+    const daysAway = Math.round((depDate - new Date(today.getFullYear(),today.getMonth(),today.getDate()))/86400000);
+    document.getElementById('travelReminder').textContent =
+      daysAway > 0 ? `🔔 Trip starts in ${daysAway} day${daysAway===1?'':'s'}` :
+      daysAway === 0 ? `🔔 Your trip starts today!` :
+      `🔔 Trip in progress`;
+  }
+
+  renderTravelItinerary(it);
+  renderTravelBookings();
+  renderBudget();
+}
+
+// Read-only day-by-day recap for Travel — adapted from Plan's renderItineraryInner()
+// (same real-schema logic: stops/hotel_suggestion, no bookType/stopIndex dependency),
+// but deliberately NOT the same function: that one writes to Plan's own DOM elements and
+// drives Plan's day tab via state.currentDay — reusing it directly would mean switching
+// tabs here also silently changed which day Plan shows next time it's opened. Uses its
+// own state.travelCurrentDay instead. Simplified from Plan's version for this trimmed,
+// read-only view: no midnight-crossing day-split, no hotel-verification tile, no Notes
+// column — just time/activity/getting-there, enough to see the plan while traveling.
+function renderTravelItinerary(it){
+  const hasStopsArray = Array.isArray(it.stops) && it.stops.length > 0;
+  const stopsList = hasStopsArray ? it.stops : [{ city: state.chosenDestination, hotel_suggestion: it.hotel_suggestion, hotel_reason: it.hotel_reason, days: it.days }];
+  const flatDays = [];
+  stopsList.forEach(stop => (stop.days||[]).forEach(day => flatDays.push({ ...day, city: stop.city })));
+  if(!flatDays.length){
+    document.getElementById('travelDayTabs').innerHTML = '';
+    document.getElementById('travelDayContent').innerHTML = '<p class="small muted" style="padding:16px 0;text-align:center;">No day-by-day plan available.</p>';
+    return;
+  }
+  const isMultiCity = new Set(flatDays.map(d=>d.city)).size > 1;
+  if(state.travelCurrentDay==null || state.travelCurrentDay >= flatDays.length) state.travelCurrentDay = 0;
+  const currentDay = flatDays[state.travelCurrentDay];
+
+  const tabsWrap = document.getElementById('travelDayTabs');
+  tabsWrap.innerHTML = '';
+  flatDays.forEach((d,i)=>{
+    const btn = document.createElement('button');
+    btn.className = 'pill' + (i===state.travelCurrentDay?' active':'');
+    btn.style.flex = '0 0 auto';
+    const cityPart = isMultiCity ? ` · ${d.city}` : '';
+    btn.textContent = `Day ${d.day_number}${cityPart}`;
+    btn.onclick = ()=>{ state.travelCurrentDay = i; if(i===flatDays.length-1) state.viewedCheckoutDay = true; renderTravelItinerary(state.itinerary); };
+    tabsWrap.appendChild(btn);
+  });
+
+  const esc = s => (s==null ? '' : String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])));
+  let html = '<div class="itin-panel">';
+  if(currentDay.day_purpose) html += `<div style="margin-bottom:8px;"><span class="day-chip">${esc(currentDay.day_purpose)}</span></div>`;
+  const items = Array.isArray(currentDay.items) ? currentDay.items : [];
+  if(!items.length){
+    html += `<p class="small muted" style="padding:16px 0;text-align:center;">No specific suggestions for this day.</p>`;
+  } else {
+    html += `<div class="itin-scroll" style="max-height:48vh;overflow-y:auto;-webkit-overflow-scrolling:touch;">
+      <table style="width:100%;border-collapse:collapse;font-size:12.5px;">
+        <thead><tr style="text-align:left;border-bottom:1px solid var(--border);position:sticky;top:0;background:#fff;">
+          <th style="padding:6px 4px;background:#fff;">Time</th>
+          <th style="padding:6px 4px;background:#fff;">Activity</th>
+          <th style="padding:6px 4px;background:#fff;">Getting there</th>
+        </tr></thead><tbody>`;
+    items.forEach(item=>{
+      const transport = item.transport_mode ? ` (${esc(item.transport_mode)})` : '';
+      const gettingThere = item.navigation ? `${esc(item.navigation)}${transport}` : (item.transport_mode ? esc(item.transport_mode) : '—');
+      const title = item.activity || item.navigation || item.place_name || 'Untitled step';
+      html += `<tr style="border-bottom:1px solid var(--border);vertical-align:top;">
+        <td style="padding:8px 4px;white-space:nowrap;color:var(--muted);">${esc(item.time) || '—'}</td>
+        <td style="padding:8px 4px;font-weight:600;">${esc(title)}</td>
+        <td style="padding:8px 4px;color:var(--muted);">${gettingThere}</td>
+      </tr>`;
+    });
+    html += `</tbody></table></div>`;
+  }
+  html += '</div>';
+  document.getElementById('travelDayContent').innerHTML = html;
+}
+
+// Read-only summary of confirmed bookings — Travel doesn't edit bookings (that's
+// Booking's job), it just needs to show what's already locked in.
+function renderTravelBookings(){
+  const wrap = document.getElementById('travelBookingsList');
+  if(!wrap) return;
+  const legs = (state.bookingLegs || []).filter(l=>l.status==='confirmed');
+  if(!legs.length){
+    wrap.innerHTML = `<p class="xsmall muted" style="margin:0;">No bookings confirmed yet.</p>`;
+    return;
+  }
+  wrap.innerHTML = legs.map(l=>{
+    const dateStr = l.date ? new Date(l.date+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short'}) : '';
+    const refStr = (l.ref && l.ref!=='reference pending') ? l.ref : '';
+    const meta = [dateStr, refStr].filter(Boolean).join(' · ');
+    return `
+    <div class="row-between" style="padding:8px 0;border-bottom:0.5px solid var(--border);">
+      <div>
+        <div class="small" style="font-weight:600;">${l.icon} ${l.name}</div>
+        ${meta ? `<div class="xsmall muted">${meta}</div>` : ''}
+      </div>
+      <span class="xsmall" style="font-weight:700;">₹${(l.amountPaid||0).toLocaleString()}</span>
+    </div>`;
+  }).join('');
+}
+
+// "+ New trip" is a deliberate reset, not just navigation — clicking it after finishing
+// or mid-way through a previous trip should not silently reuse that trip's search inputs
+// or destination data (that was the actual bug reported: old fields "auto-populating").
+// Resets everything back to the same defaults state starts with, and clears both
+// localStorage keys so a reload afterward doesn't resurrect the old trip either.
+function startNewTrip(){
+  state.itinerary = null; state.bookingLegs = null; state.chosenDestination = null;
+  state.chosenStops = null; state.destinationCostPerPerson = null; state.expenses = [];
+  state.currentDay = 0; state.allDiscoveredDestinations = null; state.compareList = [];
+  state.compareDataCache = {}; state.lastDiscoveryScreen = null; state.preselectedDestination = null;
+  state.from = "Hyderabad, India"; state.adults = 2; state.children = 0; state.elders = 0;
+  state.datesKnown = true; state.dep = {y:today.getFullYear(), m:today.getMonth(), d:today.getDate()};
+  state.ret = (function(){ const r = new Date(today); r.setDate(r.getDate()+5); return {y:r.getFullYear(), m:r.getMonth(), d:r.getDate()}; })();
+  state.approxMonth = "November"; state.expectedNights = 5; state.budget = 25000;
+  state.interests = ["Beaches","Photography"]; state.notes = "";
+  try{ localStorage.removeItem(DRAFT_KEY); localStorage.removeItem(TRIP_KEY); } catch(e){}
+  showScreen('dream-universal');
+}
+function toggleCustomCategory(){
+  const sel = document.getElementById('expenseCategory');
+  document.getElementById('expenseCategoryCustom').style.display = sel.value==='__custom' ? 'block' : 'none';
+}
+function toggleExpenseBreakdown(){
+  const el = document.getElementById('expenseBreakdown');
+  el.style.display = el.style.display==='none' ? 'block' : 'none';
+}
+// Planned = Discovery's estimated_cost_per_person × adults only (children/elders
+// excluded — the estimate isn't known to price them differently, so including them
+// would silently overstate confidence in a number we can't verify). Deliberately NOT
+// derived from the itinerary agent's own costs: it has no hotel/transport price fields,
+// and per-item costing would need correct per-transport-type child-fare handling that
+// doesn't exist. Decoupled from `it.days[].dayCost` on purpose — that shape no longer
+// exists in the real itinerary output, and Budget shouldn't be blocked on the separate,
+// still-in-progress day-view rewrite to function.
+// Actual = sum of confirmed bookings' real "amount paid" + Travel-stage manual expenses.
+// Renders into both the Book screen's read-only summary and the Travel hub's full card
+// (whichever elements exist on the page — either screen can call this independently).
+function renderBudget(){
+  const adults = state.adults || 1;
+  const perPerson = state.destinationCostPerPerson;
+  const planned = (typeof perPerson === 'number') ? perPerson * adults : null;
+  const plannedText = planned !== null ? `₹${planned.toLocaleString()} (for adults only)` : 'Not available';
+
+  const legs = state.bookingLegs || buildBookingLegs();
+  const confirmedLegsPaid = legs.filter(l=>l.status==='confirmed').reduce((s,l)=>s + (typeof l.amountPaid==='number' ? l.amountPaid : 0), 0);
+  const manualActual = (state.expenses||[]).reduce((s,e)=>s+e.amount,0);
+  const actualText = `₹${(confirmedLegsPaid+manualActual).toLocaleString()}`;
+
+  ['budgetPlanned','bookBudgetPlanned'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent = plannedText; });
+  ['budgetActual','bookBudgetActual'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent = actualText; });
+
+  const byCategory = {};
+  legs.filter(l=>l.status==='confirmed').forEach(l=>{
+    const label = l.type==='hotel' ? 'Hotel' : l.type==='flight' ? 'Flight' : l.type==='train' ? 'Train' : l.type==='bus' ? 'Bus' : (l.name||'Other');
+    const key = `${l.icon} ${label}`;
+    byCategory[key] = (byCategory[key]||0) + (l.amountPaid||0);
+  });
+  (state.expenses||[]).forEach(e=>{ byCategory[e.category] = (byCategory[e.category]||0) + e.amount; });
+  const breakdownEl = document.getElementById('expenseBreakdown');
+  if(breakdownEl){
+    breakdownEl.innerHTML = Object.keys(byCategory).length
+      ? Object.entries(byCategory).map(([cat,amt])=>
+          `<div class="row-between xsmall" style="padding:4px 0;border-bottom:0.5px solid var(--border);"><span class="muted">${cat}</span><span style="font-weight:700;">₹${amt.toLocaleString()}</span></div>`
+        ).join('')
+      : `<p class="xsmall muted" style="margin:0;">No expenses logged yet.</p>`;
+  }
+}
+function addExpense(){
+  const amt = parseInt(document.getElementById('expenseAmount').value);
+  const sel = document.getElementById('expenseCategory');
+  const cat = sel.value==='__custom' ? (document.getElementById('expenseCategoryCustom').value.trim()||'Other') : sel.value;
+  if(!amt || amt<=0){ toast('Enter a valid amount'); return; }
+  state.expenses.push({amount:amt, category:cat, day: state.currentDay+1});
+  document.getElementById('expenseAmount').value='';
+  document.getElementById('expenseCategoryCustom').value='';
+  toast(`Added ₹${amt.toLocaleString()} — ${cat}`);
+  renderBudget();
+  persistTripState();
+}
+
+// Was a complete mock before this — showed a canned "regenerating..." message and
+// never called anything real, despite its own text claiming to reuse applyEdit()'s
+// logic. Now it actually does: same fetchItineraryFromAgent() call Plan's real edit box
+// uses, which already sends the current itinerary as context so the agent edits what
+// exists rather than rebuilding from scratch (see fetchItineraryFromAgent's isSameTrip
+// handling) — this wasn't new plumbing to build, just actually wiring up to it.
+async function applyAdaptation(){
+  const input = document.getElementById('adaptInput');
+  const val = input.value.trim();
+  const resultEl = document.getElementById('adaptResult');
+  if(!val || !state.itinerary) return;
+
+  const applyBtn = document.querySelector('#travelAdaptCard .inline-add .btn-secondary');
+  if(applyBtn) applyBtn.disabled = true;
+  resultEl.style.display = 'block';
+  resultEl.innerHTML = `🧭 Rebuilding your itinerary with that change...`;
+
+  let result = null;
+  let lastError = null;
+  try {
+    result = await fetchItineraryFromAgent(val);
+  } catch(e){
+    console.error('Adaptation request failed:', e);
+    lastError = e;
+  }
+
+  if(applyBtn) applyBtn.disabled = false;
+
+  if(!result){
+    resultEl.innerHTML = `${classifyAgentFailure(lastError)} Your current itinerary is unchanged.`;
+    return;
+  }
+
+  applyAgentResultWarnings(result);
+  state.itinerary = result.agentData;
+  state.itinerary.destination = { name: state.chosenDestination };
+  state.editHistoryDestination = state.chosenDestination;
+  state.lastGeneratedPrefs = { stay: state.prefs.stay, pace: state.prefs.pace, ownTransport: state.prefs.ownTransport, food: [...(state.prefs.food||[])] };
+  state.lastKnownItinerary = result.agentData;
+  state.travelCurrentDay = 0;
+  // Booking legs are derived from the itinerary's structure — a replan can shift dates/
+  // items, so rebuild them too. refreshBookingLegs() merges rather than overwrites, so
+  // anything already confirmed survives this instead of silently getting wiped.
+  refreshBookingLegs();
+  persistTripState();
+
+  resultEl.innerHTML = `✨ Updated — your plan for the remaining days has been rebuilt.`;
+  input.value = '';
+  renderTravelHub();
+}
+
+function selectRating(n){
+  state.feedbackRating = n;
+  document.querySelectorAll('[data-screen="trip-feedback"] span[style*="cursor"]').forEach((el,i)=>{
+    el.style.opacity = (i+1===n) ? '1' : '0.35';
+    el.style.transform = (i+1===n) ? 'scale(1.2)' : 'scale(1)';
+  });
+}
+function submitFeedback(){
+  if(!state.feedbackRating){ toast('Pick a rating first'); return; }
+  toast(`Thanks! Feedback captured — stored to help improve future trips`);
+  showScreen('home-new');
+}
+
+/* ---------- TOAST ---------- */
+function toast(msg){
+  let t = document.getElementById('toastEl');
+  if(!t){
+    t = document.createElement('div');
+    t.id = 'toastEl';
+    t.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#20232B;color:#fff;padding:10px 18px;border-radius:20px;font-size:12.5px;z-index:999;transition:opacity 0.3s;font-weight:600;box-shadow:var(--shadow-lg);max-width:340px;text-align:center;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(()=>{ t.style.opacity = '0'; }, 2000);
+}
+
+/* ---------- AUTO-PERSIST IN-PROGRESS SEARCH (US-D2.1) ---------- */
+const DRAFT_KEY = 'saathi_draft_search_v1';
+const DRAFT_FIELDS = ['from','adults','children','elders','dep','ret','datesKnown','approxMonth','expectedNights','budget','interests','notes',
+  'allDiscoveredDestinations','compareList','compareDataCache','lastDiscoveryScreen'];
+function persistDraft(){
+  try{
+    const draft = {};
+    DRAFT_FIELDS.forEach(f => draft[f] = state[f]);
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+  } catch(e){ /* storage unavailable — fail silently, nothing to persist */ }
+}
+function restoreDraft(){
+  try{
+    const raw = localStorage.getItem(DRAFT_KEY);
+    if(!raw) return false;
+    const draft = JSON.parse(raw);
+    DRAFT_FIELDS.forEach(f => { if(draft[f] !== undefined) state[f] = draft[f]; });
+    return true;
+  } catch(e){ return false; }
+}
+const hadDraft = restoreDraft();
+
+/* ---------- AUTO-PERSIST FULL TRIP STATE (same-device resume) ---------- */
+// Separate key from the search draft above — that one only ever covered pre-itinerary
+// fields. This covers the whole trip (itinerary, bookings, expenses) so a returning
+// visit can land on home-returning with everything intact, not just the search form.
+// Same-device/same-browser only — this is the localStorage-based interim step; real
+// cross-device resume needs the auth + trip_sessions backend, which is separate work.
+const TRIP_KEY = 'saathi_trip_v1';
+const TRIP_FIELDS = ['itinerary','bookingLegs','chosenDestination','chosenStops','destinationCostPerPerson','expenses','currentDay','dep','ret','datesKnown','nights','adults','children','elders','from'];
+function persistTripState(){
+  try{
+    if(!state.itinerary){ localStorage.removeItem(TRIP_KEY); return; }
+    const snapshot = {};
+    TRIP_FIELDS.forEach(f => snapshot[f] = state[f]);
+    localStorage.setItem(TRIP_KEY, JSON.stringify(snapshot));
+  } catch(e){ /* storage unavailable — fail silently, nothing to persist */ }
+}
+function restoreTripState(){
+  try{
+    const raw = localStorage.getItem(TRIP_KEY);
+    if(!raw) return false;
+    const snapshot = JSON.parse(raw);
+    if(!snapshot.itinerary) return false;
+    TRIP_FIELDS.forEach(f => { if(snapshot[f] !== undefined) state[f] = snapshot[f]; });
+    return true;
+  } catch(e){ return false; }
+}
+const hadTrip = restoreTripState();
+
+showScreen(hasAnyReturningProgress() ? 'home-returning' : 'signup');
+</script>
+</body>
+</html>
