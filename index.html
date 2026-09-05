@@ -2171,7 +2171,7 @@ const TRANSPORT_ICONS = { flight:"✈️", train:"🚆", bus:"🚌", car:"🚗",
 function decideTransportMode(nights, budgetPerPerson, stayPref){
   if(budgetPerPerson && budgetPerPerson < 8000) return 'bus';
   if(stayPref === 'budget') return 'train';
-  if((budgetPerPerson && budgetPerPerson < 15000) || nights >= 6) return 'train';
+  if((budgetPerPerson && budgetPerPerson <= 15000) || nights >= 6) return 'train';
   return 'flight';
 }
 state.bookingLegs = null;
