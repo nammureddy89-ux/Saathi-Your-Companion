@@ -316,11 +316,11 @@
       <div style="font-weight:700;font-size:14px;">✨ Discover for me</div>
       <div class="small muted">Tell us the vibe, we'll suggest destinations</div>
     </div>
-    <div class="card" style="padding:13px;margin-bottom:8px;cursor:pointer;box-shadow:none;" onclick="showScreen('dream-compare')">
+    <div class="card" style="padding:13px;margin-bottom:8px;cursor:pointer;box-shadow:none;" onclick="if(requireOrigin()) showScreen('dream-compare')">
       <div style="font-weight:700;font-size:14px;">⇄ Compare destinations</div>
       <div class="small muted">Have a few places in mind? Compare side by side</div>
     </div>
-    <div class="card" style="padding:13px;cursor:pointer;box-shadow:none;" onclick="showScreen('dream-validate')">
+    <div class="card" style="padding:13px;cursor:pointer;box-shadow:none;" onclick="if(requireOrigin()) showScreen('dream-validate')">
       <div style="font-weight:700;font-size:14px;">📍 I know my destination</div>
       <div class="small muted">Skip ahead, we'll just check it's a good fit</div>
     </div>
@@ -1090,6 +1090,7 @@ function renderUniversalPlanOptions(){
   }
 }
 function continueWithPreselected(){
+  if(!requireOrigin()) return;
   document.getElementById('validateInput').value = state.preselectedDestination;
   showScreen('dream-validate');
   runValidation();
@@ -1098,7 +1099,30 @@ function clearPreselected(){
   state.preselectedDestination = null;
   renderUniversalPlanOptions();
 }
-function goToDiscover(){ showScreen('dream-discover'); }
+// Origin is required. Without it the agents guess a starting city, and with it the
+// journey time (a Gokarna trip was once planned from "Origin City" for exactly this
+// reason). Checked wherever a search, comparison, validation, itinerary build or edit
+// starts. Returns true when an origin is present; otherwise sends the traveller to the
+// From box and returns false.
+function requireOrigin(){
+  const box = document.getElementById('fromInput');
+  const active = document.querySelector('.screen.active');
+  const onFirstScreen = !!(active && active.dataset.screen === 'dream-universal');
+  // On the first screen, trust what is visibly typed in the box — a browser can refill
+  // a field without telling the page.
+  if(onFirstScreen && box && box.value.trim()) state.from = box.value.trim();
+  if(typeof state.from === 'string' && state.from.trim()) return true;
+  toast('Tell us where you’re travelling from to continue');
+  if(!onFirstScreen) showScreen('dream-universal');
+  if(box){
+    box.style.borderColor = 'var(--danger)';
+    const clearMark = () => { box.style.borderColor = ''; box.removeEventListener('input', clearMark); };
+    box.addEventListener('input', clearMark);
+    box.focus();
+  }
+  return false;
+}
+function goToDiscover(){ if(!requireOrigin()) return; showScreen('dream-discover'); }
 function goAdjustPreferences(){
   toast('Your previous answers are still here — tweak anything');
   showScreen('dream-discover');
@@ -1139,6 +1163,7 @@ const N8N_ITINERARY_WEBHOOK_URL = 'https://ccrqyanlqaveeqeylkkd.supabase.co/func
 const N8N_UPLOAD_SCREENSHOT_WEBHOOK_URL = '';
 
 async function runDiscovery(){
+  if(!requireOrigin()) return;
   const heading = document.getElementById('resultsHeading');
   const banner = document.getElementById('mismatchBanner');
   const list = document.getElementById('resultsList');
@@ -1470,6 +1495,7 @@ async function addCompareDestination(){
   const val = input.value.trim();
   const errEl = document.getElementById('compareError');
   if(!val) return;
+  if(!requireOrigin()) return;
   if(isInternational(val)){
     errEl.style.display = 'block';
     errEl.textContent = `"${val}" looks international — Saathi currently only supports domestic (India) trips, so it wasn't added.`;
@@ -1550,6 +1576,7 @@ function removeCompare(name){
 async function runValidation(){
   const val = document.getElementById('validateInput').value.trim();
   if(!val) return;
+  if(!requireOrigin()) return;
   const esc = s => (s==null ? '' : String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])));
   const resultEl = document.getElementById('validateResult');
   if(isInternational(val)){
@@ -1815,6 +1842,7 @@ function classifyAgentFailure(e){
 }
 
 async function runItineraryAgent(){
+  if(!requireOrigin()) return;
   // Only wipe edit history for a genuinely NEW destination — "I always want late
   // night trains" was an explicit standing preference, and clicking "Build my
   // itinerary" again after just tweaking stay style on the SAME destination isn't a
@@ -1889,6 +1917,11 @@ function applyAgentResultWarnings(result){
   if(selfDriven && agentData.feasibility && typeof agentData.feasibility.feasible === 'boolean' && agentData.feasibility.feasible === false){
     document.getElementById('feasibilityWarning').style.display = 'flex';
     document.getElementById('feasibilityWarningText').textContent = agentData.feasibility.note || `This trip may be difficult to complete by ${state.prefs.ownTransport} in ${nights} days — double-check the distance before committing.`;
+  } else if(selfDriven && typeof agentData.long_drive_note === 'string' && agentData.long_drive_note){
+    // The trip is doable, but a single stretch is very long. The itinerary function adds
+    // this one-line note (it never changes the plan); shown in the same box.
+    document.getElementById('feasibilityWarning').style.display = 'flex';
+    document.getElementById('feasibilityWarningText').textContent = agentData.long_drive_note;
   }
   // Budget feasibility applies regardless of transport mode — unlike self-driven
   // feasibility (a distance/time question), this is "does the stated budget realistically
@@ -2110,6 +2143,7 @@ async function applyEdit(){
   const val = input.value.trim();
   const diffEl = document.getElementById('editDiff');
   if(!val || !state.itinerary) return;
+  if(!requireOrigin()) return;
 
   const applyBtn = document.querySelector('#itinContent .inline-add .btn-secondary');
   if(applyBtn) applyBtn.disabled = true;
@@ -2150,9 +2184,54 @@ async function applyEdit(){
   state.lastKnownItinerary = result.agentData; // never cleared for display purposes — always holds the last successful generation for edit/update context
   renderItinerary();
   document.getElementById('editDiff').style.display = 'block';
-  const allEdits = state.editHistory.map(e=>`"${e}"`).join(', ');
-  document.getElementById('editDiff').innerHTML = `✨ Rebuilt. Active changes so far: ${allEdits}`;
+  document.getElementById('editDiff').innerHTML = renderEditChanges(result.agentData.edit_changes);
   input.value = '';
+}
+
+// After an edit, say what the change cost: which places were removed and added. The
+// list comes from the itinerary function, which compares the old and new plans in code
+// (edit_changes) — it is not the model describing its own work. Three sizes, so a big
+// change does not flood the box: full lists, a short summary with "Show all", or a
+// one-line "most of your plan was rebuilt".
+function renderEditChanges(changes){
+  const esc = s => (s==null ? '' : String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])));
+  if(!changes || typeof changes !== 'object') return '✨ Updated.';
+  const removed = Array.isArray(changes.removed) ? changes.removed : [];
+  const added = Array.isArray(changes.added) ? changes.added : [];
+  const hotels = Array.isArray(changes.hotel_changes) ? changes.hotel_changes : [];
+  const nameRemoved = c => esc(c.name) + (c.visits_after > 0 ? ` (${esc(c.visits_removed)} of ${esc(c.visits_before)} visits)` : '');
+  const nameAdded = c => esc(c.name) + (c.visits_before > 0 ? ' (extra visit)' : '');
+  const hotelLine = hotels.map(h => `<div>${h.from && h.to ? `Hotel changed: ${esc(h.from)} → ${esc(h.to)}` : h.to ? `Hotel added: ${esc(h.to)}` : `Hotel removed: ${esc(h.from)}`}</div>`).join('');
+  const removedLabel = '<b style="color:var(--warn);">Removed:</b>';
+  const addedLabel = '<b>Added:</b>';
+  const nothingRemoved = '<div>Nothing was removed.</div>';
+  const fullLists = (added.length ? `<div>${addedLabel} ${added.map(nameAdded).join(', ')}</div>` : '')
+    + (removed.length ? `<div>${removedLabel} ${removed.map(nameRemoved).join(', ')}</div>` : nothingRemoved);
+  const total = removed.length + added.length;
+  if(total === 0){
+    return `✨ Updated.${hotelLine}<div>${hotels.length ? 'No other places were added or removed.' : 'No places were added or removed — only timings or details changed.'}</div>`;
+  }
+  const hasDays = typeof changes.days_changed === 'number' && typeof changes.days_total === 'number';
+  const isBig = hasDays && changes.days_total >= 2 && changes.days_changed > changes.days_total / 2 && total > 10;
+  const isSmall = removed.length <= 5 && added.length <= 5;
+  if(isSmall && !isBig) return `✨ Updated.${hotelLine}${fullLists}`;
+  const details = `<div id="editDiffAll" style="display:none;margin-top:6px;">${fullLists}</div>`;
+  const toggle = label => `<a href="#" onclick="toggleEditDiffAll(this,'${label}');return false;" style="color:var(--coral-deep);font-weight:700;">${label}</a>`;
+  if(isBig){
+    return `✨ Most of your plan was rebuilt: ${esc(changes.days_changed)} of ${esc(changes.days_total)} days changed.${hotelLine}<div>${toggle('Show what changed')}</div>${details}`;
+  }
+  const firstFew = (list, namer) => list.slice(0,3).map(namer).join(', ') + (list.length > 3 ? ` <b>and ${list.length-3} more</b>` : '');
+  return `✨ Updated. ${removed.length} place${removed.length===1?'':'s'} removed, ${added.length} added.${hotelLine}`
+    + (removed.length ? `<div>${removedLabel} ${firstFew(removed, nameRemoved)}</div>` : nothingRemoved)
+    + (added.length ? `<div>${addedLabel} ${firstFew(added, nameAdded)}</div>` : '')
+    + `<div>${toggle('Show all')}</div>${details}`;
+}
+function toggleEditDiffAll(link, label){
+  const el = document.getElementById('editDiffAll');
+  if(!el) return;
+  const open = el.style.display !== 'none';
+  el.style.display = open ? 'none' : 'block';
+  link.textContent = open ? label : 'Hide';
 }
 
 
